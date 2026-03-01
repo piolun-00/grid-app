@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Gerstner Grid – Poprzednie ustawienie (dynamiczna skala w JS)</title>
+  <style>
+    html, body {
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    @font-face {
+      font-family: 'OCR-X Regular';
+      src: url('Typefaces/OCR-X Regular.woff2') format('woff2'),
+           url('Typefaces/OCR-X Regular.woff') format('woff'),
+           url('Typefaces/OCR-X Regular.ttf') format('truetype'),
+           url('Typefaces/OCR-X Regular.otf') format('opentype'),
+           url('Typefaces/OCR-X Regular.svg#OCR-XRegular') format('svg');
+      font-weight: normal;
+      font-style: normal;
+    }
+    body {
+      font-family: 'OCR-X Regular', sans-serif;
+      background: #fff;
+      color: #000;
+      font-size: 14px;
+      transition: background 0.3s, color 0.3s;
+    }
+    .container {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      margin: 0;
+    }
+    .controls {
+      flex: 0 0 20svw;
+      min-width: 200px;
+      padding: 20px;
+      background: #f5f5f5;
+      box-sizing: border-box;
+      border-right: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .controls h2 {
+      margin: 0 0 20px 0;
+      font-size: 32px;
+      font-weight: normal;
+      line-height: 1;
+    }
+
+    .panel-title {
+      margin: 0 0 20px 0;
+      font-size: 32px;
+      font-weight: normal;
+      line-height: 1;
+    }
+    .controls label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .controls input,
+    .controls select {
+      width: 100%;
+      margin-bottom: 16px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      background: #fff;
+      box-sizing: border-box;
+      font-size: 14px;
+      font-family: 'OCR-X Regular', sans-serif;
+    }
+    .controls button {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      background: #fff;
+      font-size: 14px;
+      font-family: 'OCR-X Regular', sans-serif;
+      transition: background 0.3s;
+    }
+    .controls button:hover {
+      background: #ddd;
+      cursor: pointer;
+    }
+    .download-button {
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 14px;
+      font-family: 'OCR-X Regular', sans-serif;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #000;
+      cursor: pointer;
+      transition: background 0.3s, border 0.3s;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .download-button:hover {
+      background: #f0f0f0;
+      border-color: #bbb;
+    }
+
+    /* Mobile przełącznik widoku (Grid vs Ustawienie) */
+    .mobile-view-toggle {
+      display: none;
+      gap: 8px;
+      padding: 10px;
+      box-sizing: border-box;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+    }
+    .mobile-toggle-btn {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background: #fff;
+      font-size: 14px;
+      font-family: 'OCR-X Regular', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .mobile-toggle-btn.is-active {
+      background: #eaeaea;
+      border-color: #bbb;
+    }
+    body.dark-mode .mobile-view-toggle {
+      background: #111;
+      border-bottom: 1px solid #333;
+    }
+    body.dark-mode .mobile-toggle-btn {
+      background: #333;
+      border: 1px solid #444;
+      color: #fff;
+    }
+    body.dark-mode .mobile-toggle-btn.is-active {
+      background: #444;
+      border-color: #555;
+    }
+    body.dark-mode .download-button {
+      background: #333;
+      border: 1px solid #444;
+      color: #eee;
+    }
+    body.dark-mode .download-button:hover {
+      background: #444;
+      border-color: #555;
+    }
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      margin: 32px;
+      position: relative;
+      --pad-top: 20px;
+      --pad-right: 20px;
+      --pad-bottom: 20px;
+      --pad-left: 20px;
+      padding: var(--pad-top) var(--pad-right) var(--pad-bottom) var(--pad-left);
+      background: #fff;
+      overflow: hidden;
+      flex-direction: column;
+      gap: 12px;
+    }
+    canvas {
+      background: #fff;
+      border: 1px solid #ccc;
+    }
+    .results-panel {
+      flex: 0 0 auto;
+      width: max-content;
+      min-width: 200px;
+      padding: 20px;
+      background: #fafafa;
+      box-sizing: border-box;
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    .results-panel table {
+      width: max-content;
+      border-collapse: collapse;
+      font-size: 14px;
+      color: #000;
+      margin: 0;
+      padding: 0;
+    }
+    .results-panel th,
+    .results-panel td {
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      vertical-align: top;
+    }
+    .results-panel tbody tr:nth-child(odd) {
+      background: #F9F9F9;
+    }
+    .results-panel tbody tr:nth-child(even) {
+      background: #E5E5E5;
+    }
+    .results-panel th {
+      font-size: 14px;
+      font-weight: normal;
+      border: none;
+    }
+
+    /* Ustawienie: etykiety mogą się łamać, dane w "kawałkach" bez rozrywania */
+    .results-panel td:first-child {
+      white-space: normal;
+    }
+    .results-panel td:last-child {
+      white-space: normal;
+    }
+    .nowrap {
+      white-space: nowrap;
+    }
+    .toggle-container {
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid #ddd;
+    }
+    .toggle-container label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 2px;
+      bottom: 2px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #C8D5BB;
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    .footer {
+      margin-top: 10px;
+      font-family: 'OCR-X Regular', sans-serif;
+      font-size: 14px;
+      text-align: left;
+      color: inherit;
+    }
+    .footer a {
+      text-decoration: underline;
+      color: inherit;
+    }
+    body.dark-mode {
+      background: #111;
+      color: #fff;
+    }
+    body.dark-mode .controls {
+      background: #222;
+      border-right: 1px solid #333;
+    }
+    body.dark-mode .controls input,
+    body.dark-mode .controls select,
+    body.dark-mode .controls button {
+      background: #333;
+      border: 1px solid #444;
+      color: #fff;
+    }
+    body.dark-mode .controls button:hover {
+      background: #555;
+    }
+    body.dark-mode .results-panel {
+      background: #222;
+      border-right: 1px solid #333;
+    }
+    body.dark-mode .results-panel table {
+      color: #eee;
+    }
+    body.dark-mode .results-panel th,
+    body.dark-mode .results-panel td {
+      border-bottom: 1px solid #444;
+    }
+    body.dark-mode .results-panel tbody tr:nth-child(odd) {
+      background: #333;
+    }
+    body.dark-mode .results-panel tbody tr:nth-child(even) {
+      background: #2a2a2a;
+    }
+    body.dark-mode .toggle-container {
+      border-top: 1px solid #333;
+    }
+    body.dark-mode .canvas-container {
+      background: #111;
+    }
+    body.dark-mode .footer {
+      background: #222;
+      color: #fff;
+    }
+    @media (max-width: 1024px) {
+      /* Na wąskich ekranach pozwalamy na przewijanie całej strony */
+      html, body {
+        overflow: auto;
+      }
+
+      .container {
+        flex-direction: column;
+        align-items: stretch;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      /* Kolejność sekcji: Parametry -> przełącznik -> (Grid lub Ustawienie) */
+      .controls { order: 1; }
+      .mobile-view-toggle { order: 2; }
+      .canvas-container { order: 3; }
+      .results-panel { order: 3; }
+
+      .controls, .results-panel, .canvas-container {
+        flex: none;
+        width: 100%;
+        margin: 0;
+        box-sizing: border-box;
+      }
+
+      .mobile-view-toggle {
+        display: flex;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      /* Widok przełączany: na mobile pokazujemy albo siatkę, albo dane */
+      body[data-mobile-view="results"] .canvas-container { display: none; }
+      body[data-mobile-view="results"] .results-panel { display: block; }
+      body[data-mobile-view="grid"] .results-panel { display: none; }
+      body[data-mobile-view="grid"] .canvas-container { display: flex; }
+
+      /* Na tym breakpoincie Grid ma działać jak Parametry: normalnie przewija się razem ze stroną, a wewnątrz ma własny scroll */
+      .controls {
+        max-height: 50vh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+      }
+      .results-panel {
+        position: static;
+        height: 40vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+      .results-panel table {
+  width: 100%;
+}
+
+      /* Canvas sekcja bez dużych marginesów, bo to zabija miejsce */
+      .canvas-container {
+        margin: 0;
+        --pad-top: 10px;
+        --pad-right: 10px;
+        --pad-bottom: 10px;
+        --pad-left: 10px;
+        padding: var(--pad-top) var(--pad-right) var(--pad-bottom) var(--pad-left);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="controls">
+      <h2>Parametry</h2>
+
+      <label>Jednostka:</label>
+      <select id="unit">
+        <option value="mm">mm</option>
+        <option value="px">px</option>
+      </select>
+
+      <label>Szerokość strony:</label>
+      <input type="text" id="pageWidth" value="210.00" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" />
+
+      <label>Wysokość strony:</label>
+      <input type="text" id="pageHeight" value="297.00" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" />
+
+      <label>Margines górny:</label>
+      <input type="text" id="marginTop" value="5.00" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" />
+
+      <label>Margines dolny:</label>
+      <input type="text" id="marginBottom" value="5.00" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" />
+
+      <label>Margines lewy:</label>
+      <input type="text" id="marginLeft" value="5.00" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" />
+
+      <label>Margines prawy:</label>
+      <input type="text" id="marginRight" value="5.00" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" />
+
+      <label>Wielkość fontu (pt) – stała:</label>
+      <input type="text" id="fontSize" value="8.00" inputmode="decimal" class="decimal-input" data-min="1" data-decimals="2" />
+
+      <label>Współczynnik interlinii:</label>
+      <input type="text" id="lineHeight" value="1.20" inputmode="decimal" class="decimal-input" data-min="0.1" data-decimals="2" />
+
+      <label>Liczba kolumn:</label>
+      <input type="number" id="columns" value="1" min="1" />
+
+      <label>Moduły poziome:</label>
+      <input type="number" id="hModules" value="1" min="1" />
+
+      <label>Odstęp między kolumnami:</label>
+      <input type="text" id="gutter" value="" placeholder="auto" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" data-auto="1" />
+
+      <button id="recalc" class="reset-button" style="margin-bottom:12px;">Przelicz i rysuj</button>
+      <button id="reset" class="reset-button">Reset</button>
+
+      <div class="toggle-container">
+        <label>
+          Tryb ciemny
+          <div class="toggle-switch">
+            <input type="checkbox" id="darkModeToggle">
+            <span class="slider"></span>
+          </div>
+        </label>
+      </div>
+
+      <div class="footer">
+        <p>WGC©2025 Designed by Radek Prośniak <a href="https://www.instagram.com/khorei.studio/" target="_blank">KHOREI</a></p>
+      </div>
+    </div>
+    <div class="mobile-view-toggle" id="mobileViewToggle">
+      <button type="button" class="mobile-toggle-btn is-active" data-view="grid">Grid</button>
+      <button type="button" class="mobile-toggle-btn" data-view="results">Ustawienie</button>
+    </div>
+
+    <div class="results-panel" id="results"></div>
+
+    <div class="canvas-container" id="visContainer">
+      <canvas id="gridCanvas"></canvas>
+    </div>
+  </div>
+
+  <script>
+    let manualTheme = false;
+
+    // Ostatnia poprawna liczba modułów poziomych (blokada przy granicy 3 wierszy/moduł)
+    let lastValidHModules = 1;
+
+    function computeMaxHModules(availableHeight, fontSizeConverted) {
+      // Maksymalna liczba wierszy przy założeniu, że efektywna interlinia nie spada poniżej 1.0
+      const maxRows = Math.floor(availableHeight / (fontSizeConverted * 1.0));
+      // Minimalnie: 3 wiersze tekstu na moduł + (M-1) przerw po 1 wierszu => nRows >= 4M - 1
+      const maxM = Math.floor((maxRows + 1) / 4);
+      return Math.max(maxM, 1);
+    }
+
+    function updateTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('darkModeToggle').checked = true;
+      } else {
+        document.body.classList.remove('dark-mode');
+        document.getElementById('darkModeToggle').checked = false;
+      }
+    }
+
+    function detectSystemTheme() {
+      if (window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        if (!manualTheme) {
+          updateTheme(mq.matches ? 'dark' : 'light');
+        }
+        if (mq.addEventListener) {
+          mq.addEventListener('change', e => {
+            if (!manualTheme) updateTheme(e.matches ? 'dark' : 'light');
+          });
+        } else if (mq.addListener) {
+          mq.addListener(e => {
+            if (!manualTheme) updateTheme(e.matches ? 'dark' : 'light');
+          });
+        }
+      }
+    }
+
+    window.addEventListener('load', () => {
+      detectSystemTheme();
+      recalcAndDraw();
+    });
+
+    document.getElementById('darkModeToggle').addEventListener('change', function() {
+      manualTheme = true;
+      updateTheme(this.checked ? 'dark' : 'light');
+      saveState();
+    });
+
+    function normalizeNumberString(s) {
+      return String(s ?? '')
+        .trim()
+        .replace(/\s+/g, '')
+        .replace(',', '.');
+    }
+
+    function readDecimalInput(id, fallback = 0) {
+      const el = document.getElementById(id);
+      const raw = normalizeNumberString(el.value);
+      const v = parseFloat(raw);
+      return Number.isFinite(v) ? v : fallback;
+    }
+
+    function clampMin(v, min) {
+      return v < min ? min : v;
+    }
+
+    document.querySelectorAll('.decimal-input').forEach(input => {
+      input.addEventListener('blur', function() {
+        const min = parseFloat(this.dataset.min ?? '0');
+        const decimals = parseInt(this.dataset.decimals ?? '2', 10);
+
+        const raw = normalizeNumberString(this.value);
+        let v = parseFloat(raw);
+
+        if (!Number.isFinite(v)) v = min;
+        v = clampMin(v, min);
+
+        this.value = v.toFixed(decimals);
+
+        if (this.id === 'gutter') this.dataset.auto = '0';
+
+        recalcAndDraw();
+        saveState();
+      });
+    });
+
+    document.querySelectorAll('.decimal-input').forEach(input => {
+      input.addEventListener('keydown', function(e) {
+        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+
+        e.preventDefault();
+
+        const min = parseFloat(this.dataset.min ?? '0');
+        const decimals = parseInt(this.dataset.decimals ?? '2', 10);
+        const delta = e.shiftKey ? 1.0 : 0.1;
+        const dir = (e.key === 'ArrowUp') ? 1 : -1;
+
+        const raw = normalizeNumberString(this.value);
+        let v = parseFloat(raw);
+        if (!Number.isFinite(v)) v = min;
+
+        v = clampMin(v + dir * delta, min);
+        this.value = v.toFixed(decimals);
+
+        if (this.id === 'gutter') this.dataset.auto = '0';
+
+        recalcAndDraw();
+        saveState();
+      });
+    });
+
+    // Strzałki dla pól całkowitych (kolumny): ±1, z Shiftem ±10
+    const columnsEl = document.getElementById('columns');
+    if (columnsEl) {
+      columnsEl.addEventListener('keydown', function(e) {
+        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+
+        e.preventDefault();
+
+        const min = parseInt(this.getAttribute('min') || '1', 10);
+        const step = e.shiftKey ? 10 : 1;
+        const dir = (e.key === 'ArrowUp') ? 1 : -1;
+
+        let v = parseInt(this.value, 10);
+        if (!Number.isFinite(v)) v = 0;
+
+        v = v + dir * step;
+        if (v < min) v = min;
+
+        this.value = String(v);
+        recalcAndDraw();
+        saveState();
+      });
+    }
+
+    // Strzałki dla pól całkowitych (moduły poziome): ±1, z Shiftem ±10
+    const hModulesEl = document.getElementById('hModules');
+    if (hModulesEl) {
+      hModulesEl.addEventListener('keydown', function(e) {
+        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+
+        e.preventDefault();
+
+        const min = parseInt(this.getAttribute('min') || '1', 10);
+        const step = e.shiftKey ? 10 : 1;
+        const dir = (e.key === 'ArrowUp') ? 1 : -1;
+
+        let v = parseInt(this.value, 10);
+        if (!Number.isFinite(v)) v = 0;
+
+        v = v + dir * step;
+        if (v < min) v = min;
+
+        this.value = String(v);
+        recalcAndDraw();
+        saveState();
+      });
+    }
+
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      input.addEventListener('change', function() {
+        const min = parseFloat(this.getAttribute('min')) || 0;
+        let current = parseFloat(this.value);
+
+        if (!Number.isFinite(current) || current < min) {
+          current = min;
+          this.value = String(min);
+        }
+
+        recalcAndDraw();
+        saveState();
+      });
+    });
+
+    function saveState() {
+      const state = {
+        unit: document.getElementById('unit').value,
+        pageWidth: document.getElementById('pageWidth').value,
+        pageHeight: document.getElementById('pageHeight').value,
+        marginTop: document.getElementById('marginTop').value,
+        marginBottom: document.getElementById('marginBottom').value,
+        marginLeft: document.getElementById('marginLeft').value,
+        marginRight: document.getElementById('marginRight').value,
+        fontSize: document.getElementById('fontSize').value,
+        lineHeight: document.getElementById('lineHeight').value,
+        columns: document.getElementById('columns').value,
+        hModules: document.getElementById('hModules') ? document.getElementById('hModules').value : '',
+        gutter: document.getElementById('gutter').value,
+        darkMode: document.getElementById('darkModeToggle').checked,
+        mobileView: document.body.dataset.mobileView || 'grid'
+      };
+      localStorage.setItem('gridApp_state', JSON.stringify(state));
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem('gridApp_state');
+      if (saved) {
+        const state = JSON.parse(saved);
+        if (state.unit) document.getElementById('unit').value = state.unit;
+        if (state.pageWidth) document.getElementById('pageWidth').value = state.pageWidth;
+        if (state.pageHeight) document.getElementById('pageHeight').value = state.pageHeight;
+        if (state.marginTop) document.getElementById('marginTop').value = state.marginTop;
+        if (state.marginBottom) document.getElementById('marginBottom').value = state.marginBottom;
+        if (state.marginLeft) document.getElementById('marginLeft').value = state.marginLeft;
+        if (state.marginRight) document.getElementById('marginRight').value = state.marginRight;
+        if (state.fontSize) document.getElementById('fontSize').value = state.fontSize;
+        if (state.lineHeight) document.getElementById('lineHeight').value = state.lineHeight;
+        if (state.columns) {
+          document.getElementById('columns').value = state.columns;
+        } else {
+          document.getElementById('columns').value = '1';
+        }
+
+        if (state.hModules) {
+          document.getElementById('hModules').value = state.hModules;
+          const hv = parseInt(state.hModules, 10);
+          lastValidHModules = Number.isFinite(hv) && hv >= 1 ? hv : 1;
+        } else {
+          document.getElementById('hModules').value = '1';
+          lastValidHModules = 1;
+        }
+        if (state.gutter) document.getElementById('gutter').value = state.gutter;
+        if (typeof state.darkMode === 'boolean') {
+          document.getElementById('darkModeToggle').checked = state.darkMode;
+          updateTheme(state.darkMode ? 'dark' : 'light');
+        }
+        if (state.mobileView === 'results' || state.mobileView === 'grid') {
+          document.body.dataset.mobileView = state.mobileView;
+        } else {
+          document.body.dataset.mobileView = 'grid';
+        }
+      }
+    }
+
+    loadState();
+
+    // Mobile toggle: Grid vs Dane wyjściowe
+    function setMobileView(view) {
+      const v = (view === 'results') ? 'results' : 'grid';
+      document.body.dataset.mobileView = v;
+
+      const toggle = document.getElementById('mobileViewToggle');
+      if (toggle) {
+        toggle.querySelectorAll('.mobile-toggle-btn').forEach(btn => {
+          btn.classList.toggle('is-active', btn.dataset.view === v);
+        });
+      }
+
+      // Jeśli wracamy na Grid, przerysuj, bo canvas mógł być schowany i mieć 0 rozmiaru
+      if (v === 'grid') {
+        requestAnimationFrame(() => {
+          recalcAndDraw();
+        });
+      }
+
+      saveState();
+    }
+
+    (function initMobileViewToggle() {
+      // Domyślnie (jeśli nic nie ustawiono) pokazuj Grid
+      if (!document.body.dataset.mobileView) document.body.dataset.mobileView = 'grid';
+
+      const toggle = document.getElementById('mobileViewToggle');
+      if (!toggle) return;
+
+      toggle.addEventListener('click', (e) => {
+        const btn = e.target.closest('.mobile-toggle-btn');
+        if (!btn) return;
+        setMobileView(btn.dataset.view);
+      });
+
+      // Ustaw aktywny stan przy starcie
+      setMobileView(document.body.dataset.mobileView);
+    })();
+
+    function computeColumns(availableWidth, fontSizeConverted, columnsInput) {
+      let nColumns;
+      if (columnsInput !== "") {
+        nColumns = Math.max(parseInt(columnsInput), 1);
+      } else {
+        if (readDecimalInput('fontSize', 8) <= 8) {
+          nColumns = 4;
+        } else {
+          nColumns = Math.floor(availableWidth / (fontSizeConverted * 5));
+          nColumns = Math.max(nColumns, 1);
+        }
+        document.getElementById('columns').value = nColumns;
+      }
+      return nColumns;
+    }
+
+    // Dopasowanie liczby wierszy (baseline) do modułów poziomych:
+    // - M modułów, (M-1) przerw po 1 wierszu (1 interlinia)
+    // - równa liczba wierszy tekstu w każdym module
+    // - nie schodzimy z efektywną interlinią poniżej 1.0 (poniżej tylko manualnie)
+    // - minimum 3 wiersze tekstu na moduł
+    function fitRowsToHorizontalModules(baseRows, modules, availableHeight, fontSizeConverted) {
+      const M = Math.max(parseInt(modules, 10) || 1, 1);
+      if (M <= 1) {
+        return { nRows: baseRows, rowsPerModule: baseRows, hasModules: false };
+      }
+
+      const minTextRowsPerModule = 3;
+      const minRows = (M * minTextRowsPerModule) + (M - 1);
+
+      // Wymagamy: optimalBaselineSpacing >= fontSizeConverted (czyli efektywna interlinia >= 1.0)
+      const maxRows = Math.floor(availableHeight / (fontSizeConverted * 1.0));
+
+      if (maxRows < minRows) {
+        return { nRows: baseRows, rowsPerModule: baseRows, hasModules: false };
+      }
+
+      const isValid = (rows) => {
+        if (!Number.isFinite(rows)) return false;
+        if (rows < minRows || rows > maxRows) return false;
+        const textRows = rows - (M - 1);
+        if (textRows < M * minTextRowsPerModule) return false;
+        return (textRows % M) === 0;
+      };
+
+      const maxOffset = Math.max(baseRows - minRows, maxRows - baseRows);
+      for (let off = 0; off <= maxOffset; off++) {
+        const down = baseRows - off;
+        if (isValid(down)) {
+          const rowsPerModule = (down - (M - 1)) / M;
+          return { nRows: down, rowsPerModule, hasModules: true };
+        }
+        const up = baseRows + off;
+        if (isValid(up)) {
+          const rowsPerModule = (up - (M - 1)) / M;
+          return { nRows: up, rowsPerModule, hasModules: true };
+        }
+      }
+
+      return { nRows: baseRows, rowsPerModule: baseRows, hasModules: false };
+    }
+
+    function getHorizontalModuleGapRowIndices(modules, rowsPerModule) {
+      const M = Math.max(parseInt(modules, 10) || 1, 1);
+      if (M <= 1) return [];
+      const gaps = [];
+      for (let m = 0; m < M - 1; m++) {
+        const gapRowIndex = (m + 1) * rowsPerModule + m * 1;
+        gaps.push(gapRowIndex);
+      }
+      return gaps;
+    }
+
+    function recalcAndDraw() {
+      const unit = document.getElementById('unit').value;
+      const conversionFactor = (unit === "mm") ? 0.3528 : 1.3333;
+
+      const pageWidth = readDecimalInput('pageWidth', 0);
+      const pageHeight = readDecimalInput('pageHeight', 0);
+      const marginTop = readDecimalInput('marginTop', 0);
+      const marginBottom = readDecimalInput('marginBottom', 0);
+      const marginLeft = readDecimalInput('marginLeft', 0);
+      const marginRight = readDecimalInput('marginRight', 0);
+      const fixedFontSizePt = readDecimalInput('fontSize', 8);
+      const lineHeightMult = readDecimalInput('lineHeight', 1.2);
+      const columnsInput = document.getElementById('columns').value;
+      // --- hModules block rewrite
+      const hModulesEl = document.getElementById('hModules');
+      const hModulesInput = hModulesEl ? String(hModulesEl.value).trim() : "";
+
+      // Liczymy moduły od 1. Jeśli user wpisze zbyt dużą liczbę (granica 3 wiersze/moduł), ignorujemy zmianę.
+      let modulesCount = (hModulesInput !== "")
+        ? Math.max(parseInt(hModulesInput, 10) || 1, 1)
+        : 1;
+
+      const fontSizeConverted = fixedFontSizePt * conversionFactor;
+      const availableWidthVal = pageWidth - (marginLeft + marginRight);
+      const availableHeight = pageHeight - (marginTop + marginBottom);
+
+      const maxHModules = computeMaxHModules(availableHeight, fontSizeConverted);
+      if (hModulesEl && hModulesInput !== "" && modulesCount > maxHModules) {
+        // Blokada: wpisanie większej liczby nie zmienia nic (wracamy do ostatniej poprawnej wartości)
+        modulesCount = lastValidHModules;
+        hModulesEl.value = String(lastValidHModules);
+      }
+      // --- end hModules block rewrite
+
+      let nRowsBase = Math.floor(availableHeight / (fontSizeConverted * lineHeightMult));
+      if (nRowsBase < 1) nRowsBase = 1;
+
+      const fit = fitRowsToHorizontalModules(nRowsBase, modulesCount, availableHeight, fontSizeConverted);
+
+      // Aktualizujemy ostatnią poprawną wartość tylko jeśli user faktycznie używa modułów (pole nie jest puste)
+      if (hModulesEl && hModulesInput !== "") {
+        lastValidHModules = modulesCount;
+      } else {
+        lastValidHModules = 1;
+      }
+
+      const nRows = fit.nRows;
+      const rowsPerModule = fit.hasModules ? fit.rowsPerModule : null;
+
+      const optimalBaselineSpacing = availableHeight / nRows;
+      const optimalBaselineSpacingPt = optimalBaselineSpacing / conversionFactor;
+
+      const gapRowIndices = fit.hasModules ? getHorizontalModuleGapRowIndices(modulesCount, rowsPerModule) : [];
+
+      const gutterEl = document.getElementById('gutter');
+      const shouldAutoGutter =
+        (String(gutterEl.value ?? '').trim() === '') || (gutterEl.dataset.auto === '1');
+
+      let gutterSpacing = readDecimalInput('gutter', NaN);
+      if (shouldAutoGutter) {
+        gutterSpacing = optimalBaselineSpacing;
+        gutterEl.value = gutterSpacing.toFixed(2);
+        gutterEl.dataset.auto = '1';
+      } else if (!Number.isFinite(gutterSpacing)) {
+        gutterSpacing = optimalBaselineSpacing;
+        gutterEl.value = gutterSpacing.toFixed(2);
+        gutterEl.dataset.auto = '1';
+      }
+
+      let nColumns = computeColumns(availableWidthVal, fontSizeConverted, columnsInput);
+
+      const totalGutter = (nColumns - 1) * gutterSpacing;
+      const columnWidth = (availableWidthVal - totalGutter) / nColumns;
+
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = `
+        <div class="panel-title">Ustawienie</div>
+        <table>
+          <tbody>
+            <tr>
+              <td>Liczba wierszy (baseline):</td>
+              <td>${nRows}</td>
+            </tr>
+            <tr>
+              <td>Font:</td>
+              <td><span class="nowrap">${fixedFontSizePt.toFixed(2)} pt</span> <span class="nowrap">(${fontSizeConverted.toFixed(2)} ${unit})</span></td>
+            </tr>
+            <tr>
+              <td>Interlinia:</td>
+              <td><span class="nowrap">${optimalBaselineSpacingPt.toFixed(2)} pt</span> <span class="nowrap">(${optimalBaselineSpacing.toFixed(2)} ${unit})</span></td>
+            </tr>
+            <tr>
+              <td>Współczynnik interlinii:</td>
+              <td>${lineHeightMult.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td>Moduły poziome:</td>
+              <td>${(hModulesInput !== "" ? modulesCount : 1)}</td>
+            </tr>
+            <tr>
+              <td>Wiersze tekstu / moduł:</td>
+              <td>${rowsPerModule !== null ? rowsPerModule : '-'}</td>
+            </tr>
+            <tr>
+              <td>Wiersze bazowe (dopasowane):</td>
+              <td>${nRows}${nRowsBase !== nRows ? ` (z ${nRowsBase})` : ''}</td>
+            </tr>
+            <tr>
+              <td>Liczba kolumn:</td>
+              <td>${nColumns}</td>
+            </tr>
+            <tr>
+              <td>Szerokość kolumny:</td>
+              <td><span class="nowrap">${columnWidth.toFixed(2)} ${unit}</span></td>
+            </tr>
+            <tr>
+              <td>Odstęp między kolumnami:</td>
+              <td><span class="nowrap">${gutterSpacing.toFixed(2)} ${unit}</span></td>
+            </tr>
+            <tr>
+              <td>Rozmiar strony:</td>
+              <td><span class="nowrap">W: ${pageWidth.toFixed(2)} ${unit}</span><br><span class="nowrap">H: ${pageHeight.toFixed(2)} ${unit}</span></td>
+            </tr>
+            <tr>
+  <td>Marginesy pion:</td>
+  <td><span class="nowrap">T: ${marginTop.toFixed(2)} ${unit}</span><br><span class="nowrap">B: ${marginBottom.toFixed(2)} ${unit}</span></td>
+</tr>
+<tr>
+  <td>Marginesy poziom:</td>
+  <td><span class="nowrap">L: ${marginLeft.toFixed(2)} ${unit}</span><br><span class="nowrap">R: ${marginRight.toFixed(2)} ${unit}</span></td>
+</tr>
+          </tbody>
+        </table>
+        <button class="download-button" id="downloadSVG">Pobierz siatkę</button>`;
+
+      document.getElementById('downloadSVG').addEventListener('click', downloadSVG);
+
+      const canvas = document.getElementById('gridCanvas');
+      const ctx = canvas.getContext('2d');
+      const container = document.querySelector('.canvas-container');
+      const containerStyle = getComputedStyle(container);
+      const paddingLeft = parseFloat(containerStyle.paddingLeft);
+      const paddingRight = parseFloat(containerStyle.paddingRight);
+      const paddingTop = parseFloat(containerStyle.paddingTop);
+      const paddingBottom = parseFloat(containerStyle.paddingBottom);
+      const contentWidth = container.clientWidth - paddingLeft - paddingRight;
+      const contentHeight = container.clientHeight - paddingTop - paddingBottom;
+
+      // Skala dopasowana do kontenera, ale nie pozwalamy, żeby rysunek „zniknął”
+      // Minimalny rozmiar rysunku: 120px szerokości i 200px wysokości (z zachowaniem proporcji)
+      const fitScale = Math.min(contentWidth / pageWidth, contentHeight / pageHeight);
+      const minScale = Math.max(120 / pageWidth, 200 / pageHeight);
+      const scale = Math.max(fitScale, minScale);
+
+      canvas.width = Math.max(1, Math.round(pageWidth * scale));
+      canvas.height = Math.max(1, Math.round(pageHeight * scale));
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.scale(scale, scale);
+
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, pageWidth, pageHeight);
+
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 1 / scale;
+      ctx.strokeRect(0, 0, pageWidth, pageHeight);
+
+      ctx.strokeStyle = '#aaa';
+      ctx.lineWidth = 1 / scale;
+      ctx.strokeRect(marginLeft, marginTop, availableWidthVal, availableHeight);
+
+      // Moduły poziome: wypełnienie przerw (1 wiersz = 1 interlinia) – #113BB7
+      if (gapRowIndices.length > 0) {
+        ctx.fillStyle = 'rgba(17,59,183,0.2)'; // #113BB7
+        for (const rowIdx of gapRowIndices) {
+          const yGap = marginTop + rowIdx * optimalBaselineSpacing;
+          ctx.fillRect(marginLeft, yGap, availableWidthVal, optimalBaselineSpacing);
+        }
+      }
+
+      ctx.strokeStyle = '#DE4343';
+      ctx.lineWidth = 1 / scale;
+      for (let i = 0; i <= nRows; i++) {
+        const y = marginTop + i * optimalBaselineSpacing;
+        ctx.beginPath();
+        ctx.moveTo(marginLeft, y);
+        ctx.lineTo(marginLeft + availableWidthVal, y);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = 'rgba(222,67,67,0.2)';
+      for (let i = 1; i < nColumns; i++) {
+        const gutterLeft = marginLeft + i * columnWidth + (i - 1) * gutterSpacing;
+        ctx.fillRect(gutterLeft, marginTop, gutterSpacing, availableHeight);
+      }
+
+      ctx.strokeStyle = '#DE4343';
+      ctx.lineWidth = 1 / scale;
+      for (let i = 0; i <= nColumns; i++) {
+        let x;
+        if (i === 0) x = marginLeft;
+        else if (i === nColumns) x = marginLeft + availableWidthVal;
+        else x = marginLeft + i * columnWidth + (i - 1) * gutterSpacing;
+
+        ctx.beginPath();
+        ctx.moveTo(x, marginTop);
+        ctx.lineTo(x, marginTop + availableHeight);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+      saveState();
+    }
+
+    function downloadSVG() {
+      const unit = document.getElementById('unit').value;
+      const conversionFactor = (unit === "mm") ? 0.3528 : 1.3333;
+
+      const pageWidth = readDecimalInput('pageWidth', 0);
+      const pageHeight = readDecimalInput('pageHeight', 0);
+      const marginTop = readDecimalInput('marginTop', 0);
+      const marginBottom = readDecimalInput('marginBottom', 0);
+      const marginLeft = readDecimalInput('marginLeft', 0);
+      const marginRight = readDecimalInput('marginRight', 0);
+      const fixedFontSizePt = readDecimalInput('fontSize', 8);
+      const lineHeightMult = readDecimalInput('lineHeight', 1.2);
+      const columnsInput = document.getElementById('columns').value;
+      const hModulesInput = document.getElementById('hModules') ? document.getElementById('hModules').value : "";
+      let gutterSpacing = readDecimalInput('gutter', NaN);
+
+      const fontSizeConverted = fixedFontSizePt * conversionFactor;
+      const availableWidth = pageWidth - (marginLeft + marginRight);
+      const availableHeight = pageHeight - (marginTop + marginBottom);
+
+      let nRowsBase = Math.floor(availableHeight / (fontSizeConverted * lineHeightMult));
+      if (nRowsBase < 1) nRowsBase = 1;
+
+      const modulesCount = (hModulesInput !== "") ? Math.max(parseInt(hModulesInput), 1) : 1;
+      const fit = fitRowsToHorizontalModules(nRowsBase, modulesCount, availableHeight, fontSizeConverted);
+
+      const nRows = fit.nRows;
+      const rowsPerModule = fit.hasModules ? fit.rowsPerModule : null;
+
+      const optimalBaselineSpacing = availableHeight / nRows;
+      const gapRowIndices = fit.hasModules ? getHorizontalModuleGapRowIndices(modulesCount, rowsPerModule) : [];
+
+      const gutterEl = document.getElementById('gutter');
+      const shouldAutoGutter =
+        (String(gutterEl.value ?? '').trim() === '') || (gutterEl.dataset.auto === '1');
+
+      if (shouldAutoGutter || !Number.isFinite(gutterSpacing)) {
+        gutterSpacing = optimalBaselineSpacing;
+      }
+
+      let nColumns;
+      if (columnsInput !== "") {
+        nColumns = Math.max(parseInt(columnsInput), 1);
+      } else {
+        if (fixedFontSizePt <= 8) nColumns = 4;
+        else {
+          nColumns = Math.floor(availableWidth / (fontSizeConverted * 5));
+          nColumns = Math.max(nColumns, 1);
+        }
+      }
+
+      const totalGutter = (nColumns - 1) * gutterSpacing;
+      const columnWidth = (availableWidth - totalGutter) / nColumns;
+
+      let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${pageWidth}${unit}" height="${pageHeight}${unit}">`;
+
+      svgContent += `<rect x="0" y="0" width="${pageWidth}" height="${pageHeight}" fill="none" stroke="#000" stroke-width="1"/>`;
+
+      svgContent += `<rect x="${marginLeft}" y="${marginTop}" width="${availableWidth}" height="${availableHeight}" fill="none" stroke="#aaa" stroke-width="1"/>`;
+
+      // Moduły poziome: wypełnienie przerw (#113BB7)
+      if (gapRowIndices.length > 0) {
+        for (const rowIdx of gapRowIndices) {
+          const yGap = marginTop + rowIdx * optimalBaselineSpacing;
+          svgContent += `<rect x="${marginLeft}" y="${yGap}" width="${availableWidth}" height="${optimalBaselineSpacing}" fill="#113BB7" fill-opacity="0.2"/>`;
+        }
+      }
+
+      for (let i = 0; i <= nRows; i++) {
+        const y = marginTop + i * optimalBaselineSpacing;
+        svgContent += `<line x1="${marginLeft}" y1="${y}" x2="${marginLeft + availableWidth}" y2="${y}" stroke="#DE4343" stroke-width="1"/>`;
+      }
+
+      for (let i = 1; i < nColumns; i++) {
+        const gutterLeft = marginLeft + i * columnWidth + (i - 1) * gutterSpacing;
+        svgContent += `<rect x="${gutterLeft}" y="${marginTop}" width="${gutterSpacing}" height="${availableHeight}" fill="#DE4343" fill-opacity="0.2"/>`;
+      }
+
+      for (let i = 0; i <= nColumns; i++) {
+        let x;
+        if (i === 0) x = marginLeft;
+        else if (i === nColumns) x = marginLeft + availableWidth;
+        else x = marginLeft + i * columnWidth + (i - 1) * gutterSpacing;
+
+        svgContent += `<line x1="${x}" y1="${marginTop}" x2="${x}" y2="${marginTop + availableHeight}" stroke="#DE4343" stroke-width="1"/>`;
+      }
+
+      svgContent += `</svg>`;
+
+      const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'siatka.svg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('recalc').addEventListener('click', () => {
+      recalcAndDraw();
+      saveState();
+    });
+
+    document.querySelectorAll('.controls input, .controls select')
+      .forEach(el => el.addEventListener('change', () => {
+        recalcAndDraw();
+        saveState();
+      }));
+
+    window.addEventListener('load', recalcAndDraw);
+    window.addEventListener('resize', recalcAndDraw);
+
+    document.getElementById('reset').addEventListener('click', () => {
+      document.getElementById('unit').value = 'mm';
+      document.getElementById('pageWidth').value = '210.00';
+      document.getElementById('pageHeight').value = '297.00';
+      document.getElementById('marginTop').value = '5.00';
+      document.getElementById('marginBottom').value = '5.00';
+      document.getElementById('marginLeft').value = '5.00';
+      document.getElementById('marginRight').value = '5.00';
+      document.getElementById('fontSize').value = '8.00';
+      document.getElementById('lineHeight').value = '1.20';
+      document.getElementById('columns').value = '1';
+      if (document.getElementById('hModules')) document.getElementById('hModules').value = '1';
+      lastValidHModules = 1;
+      document.getElementById('gutter').value = '';
+      document.getElementById('gutter').dataset.auto = '1';
+      recalcAndDraw();
+      saveState();
+    });
+  </script>
+</body>
+</html>
