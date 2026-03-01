@@ -1089,11 +1089,11 @@
       const totalGutter = (nColumns - 1) * gutterSpacing;
       const columnWidth = (availableWidth - totalGutter) / nColumns;
 
-      let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${pageWidth}${unit}" height="${pageHeight}${unit}">`;
+      let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${pageWidth}${unit}" height="${pageHeight}${unit}" viewBox="0 0 ${pageWidth} ${pageHeight}">`;
 
-      svgContent += `<rect x="0" y="0" width="${pageWidth}" height="${pageHeight}" fill="none" stroke="#000" stroke-width="1"/>`;
+      svgContent += `<rect x="0" y="0" width="${pageWidth}" height="${pageHeight}" fill="none" stroke="#000" stroke-width="0.25"/>`;
 
-      svgContent += `<rect x="${marginLeft}" y="${marginTop}" width="${availableWidth}" height="${availableHeight}" fill="none" stroke="#aaa" stroke-width="1"/>`;
+      svgContent += `<rect x="${marginLeft}" y="${marginTop}" width="${availableWidth}" height="${availableHeight}" fill="none" stroke="#aaa" stroke-width="0.25"/>`;
 
       // Moduły poziome: wypełnienie przerw (#113BB7)
       if (gapRowIndices.length > 0) {
@@ -1105,7 +1105,7 @@
 
       for (let i = 0; i <= nRows; i++) {
         const y = marginTop + i * optimalBaselineSpacing;
-        svgContent += `<line x1="${marginLeft}" y1="${y}" x2="${marginLeft + availableWidth}" y2="${y}" stroke="#DE4343" stroke-width="1"/>`;
+        svgContent += `<line x1="${marginLeft}" y1="${y}" x2="${marginLeft + availableWidth}" y2="${y}" stroke="#DE4343" stroke-width="0.25"/>`;
       }
 
       for (let i = 1; i < nColumns; i++) {
