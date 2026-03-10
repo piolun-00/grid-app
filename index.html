@@ -10,17 +10,23 @@
       padding: 0;
     }
     @font-face {
-      font-family: 'OCR-X Regular';
-      src: url('Typefaces/OCR-X Regular.woff2') format('woff2'),
-           url('Typefaces/OCR-X Regular.woff') format('woff'),
-           url('Typefaces/OCR-X Regular.ttf') format('truetype'),
-           url('Typefaces/OCR-X Regular.otf') format('opentype'),
-           url('Typefaces/OCR-X Regular.svg#OCR-XRegular') format('svg');
+      font-family: 'Fragment Mono';
+      src: url('Typefaces/fragment_mono/FragmentMono-Regular.woff2') format('woff2'),
+           url('Typefaces/fragment_mono/FragmentMono-Regular.woff') format('woff'),
+           url('Typefaces/fragment_mono/FragmentMono-Regular.ttf') format('truetype');
       font-weight: normal;
       font-style: normal;
     }
+    @font-face {
+      font-family: 'Fragment Mono';
+      src: url('Typefaces/fragment_mono/FragmentMono-Italic.woff2') format('woff2'),
+           url('Typefaces/fragment_mono/FragmentMono-Italic.woff') format('woff'),
+           url('Typefaces/fragment_mono/FragmentMono-Italic.ttf') format('truetype');
+      font-weight: normal;
+      font-style: italic;
+    }
     body {
-      font-family: 'OCR-X Regular', sans-serif;
+      font-family: 'Fragment Mono', monospace;
       background: #fff;
       color: #000;
       font-size: 14px;
@@ -70,7 +76,7 @@
       background: #fff;
       box-sizing: border-box;
       font-size: 14px;
-      font-family: 'OCR-X Regular', sans-serif;
+      font-family: 'Fragment Mono', monospace;
     }
     .controls button {
       width: 100%;
@@ -78,7 +84,7 @@
       border: 1px solid #ccc;
       background: #fff;
       font-size: 14px;
-      font-family: 'OCR-X Regular', sans-serif;
+      font-family: 'Fragment Mono', monospace;
       transition: background 0.3s;
     }
     .controls button:hover {
@@ -89,7 +95,7 @@
       margin-top: 20px;
       padding: 10px;
       font-size: 14px;
-      font-family: 'OCR-X Regular', sans-serif;
+      font-family: 'Fragment Mono', monospace;
       border: 1px solid #ccc;
       background: #fff;
       color: #000;
@@ -118,7 +124,7 @@
       border: 1px solid #ccc;
       background: #fff;
       font-size: 14px;
-      font-family: 'OCR-X Regular', sans-serif;
+      font-family: 'Fragment Mono', monospace;
       cursor: pointer;
       transition: background 0.2s, border-color 0.2s;
     }
@@ -271,7 +277,7 @@
     }
     .footer {
       margin-top: 10px;
-      font-family: 'OCR-X Regular', sans-serif;
+      font-family: 'Fragment Mono', monospace;
       font-size: 14px;
       text-align: left;
       color: inherit;
