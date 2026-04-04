@@ -1,9 +1,27 @@
+<!-- © 2026 KHOREI. All Rights Reserved. See LICENSE for details. -->
 <!DOCTYPE html>
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Grid App — Gerstner Grid Calculator</title>
+  <title>grid.app – grid calculator by khorei</title>
+  <meta name="description" content="grid calculator by khorei">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/Meta/favicon.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="assets/Meta/favicon@2x.png">
+  <!-- Apple Touch Icon -->
+  <link rel="apple-touch-icon" href="assets/Meta/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/Meta/apple-touch-icon@2x.png">
+  <!-- Open Graph -->
+  <meta property="og:title" content="grid.app – grid calculator by khorei">
+  <meta property="og:description" content="grid calculator by khorei">
+  <meta property="og:image" content="assets/Meta/og-tag@2x.png">
+  <meta property="og:type" content="website">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="grid.app – grid calculator by khorei">
+  <meta name="twitter:description" content="grid calculator by khorei">
+  <meta name="twitter:image" content="assets/Meta/og-tag@2x.png">
   <style>
     /* ===== DESIGN TOKENS ===== */
     :root {
@@ -197,12 +215,8 @@
       background: var(--bg-panel-light);
       color: var(--text-primary);
       font-family: inherit;
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      transition: background 0.3s ease-out, border-color 0.3s ease-out, color 0.3s ease-out;
       user-select: none;
-    }
-    .pill:hover {
-      background: var(--border-mid);
-      border-color: var(--border-lighter);
     }
     .pill.is-active {
       background: var(--accent);
@@ -215,10 +229,6 @@
       background: var(--border-mid);
       border-color: var(--border-lighter);
     }
-    .panel-results .pill:hover {
-      background: var(--border-lighter);
-      border-color: var(--border-focus-light);
-    }
     .panel-results .pill.is-active {
       background: var(--accent);
       border-color: var(--accent-border);
@@ -228,11 +238,6 @@
       background: var(--border-mid);
       border-color: var(--border-lighter);
     }
-    .panel-results .btn:hover {
-      background: var(--accent);
-      border-color: var(--accent-border);
-      color: var(--accent-text);
-    }
     .panel-results .btn:active {
       background: var(--accent-border);
       border-color: var(--accent-border-light);
@@ -241,11 +246,6 @@
     .panel-results .btn--full {
       background: var(--border-mid);
       border-color: var(--border-lighter);
-    }
-    .panel-results .btn--full:hover {
-      background: var(--accent);
-      border-color: var(--accent-border);
-      color: var(--accent-text);
     }
     .panel-results .btn--full:active {
       background: var(--accent-border);
@@ -304,16 +304,13 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
+      transition: background 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out;
       flex-shrink: 0;
-    }
-    .ctrl-btn:hover {
-      background: var(--accent);
-      border-color: var(--accent-border);
     }
     .ctrl-btn:active {
       background: var(--accent-border);
       border-color: var(--accent-border-light);
+      color: var(--accent);
     }
     .ctrl-btn.is-inactive {
       opacity: 0.35;
@@ -345,13 +342,8 @@
       border: 0.6px solid var(--border-mid);
       background: var(--bg-panel-light);
       color: var(--text-primary);
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      transition: background 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out;
       white-space: nowrap;
-    }
-    .btn:hover {
-      background: var(--accent);
-      border-color: var(--accent-border);
-      color: var(--accent-text);
     }
     .btn:active {
       background: var(--accent-border);
@@ -364,11 +356,6 @@
       background: var(--border-mid);
       border-color: var(--border-lighter);
       gap: var(--gap-sm);
-    }
-    .btn--full:hover {
-      background: var(--accent);
-      border-color: var(--accent-border);
-      color: var(--accent-text);
     }
     .btn svg {
       width: 24px;
@@ -394,10 +381,7 @@
     }
     .result-row.is-copyable {
       cursor: pointer;
-      transition: background 0.15s;
-    }
-    .result-row.is-copyable:hover {
-      background: var(--border-mid);
+      transition: background 0.3s ease-out;
     }
     .result-value {
       text-align: right;
@@ -407,7 +391,7 @@
     .copy-tooltip {
       position: absolute;
       right: 0;
-      bottom: -2px;
+      bottom: 0;
       transform: translateY(100%);
       width: 72px;
       height: 19px;
@@ -421,7 +405,7 @@
       color: var(--text-primary);
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.15s;
+      transition: opacity 0.3s ease-out;
       box-shadow: 0 0 1px rgba(46,46,46,0.29),
                   0 2px 2px rgba(46,46,46,0.25),
                   0 3px 2px rgba(46,46,46,0.15),
@@ -429,11 +413,8 @@
                   0 9px 3px rgba(46,46,46,0.01);
       z-index: 10;
     }
-    .result-row.is-copyable:hover .copy-tooltip {
+    .result-row.is-just-copied .copy-tooltip {
       opacity: 1;
-    }
-    .result-row.is-copyable.is-copied:hover .copy-tooltip {
-      opacity: 0;
     }
 
     /* ===== FOOTER ===== */
@@ -450,78 +431,273 @@
       text-decoration: none;
       display: flex;
       flex-shrink: 0;
-      transition: color 0.15s;
+      transition: color 0.3s ease-out;
     }
     .footer-logo svg {
       width: 80px;
       height: auto;
     }
-    .footer-logo:hover {
-      color: var(--text-primary);
-    }
 
-    /* ===== MOBILE ===== */
-    .mobile-view-toggle {
+    /* ===== NEW COMPONENTS ===== */
+    .app-header {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 20px 0;
+      flex-shrink: 0;
+      animation: fadeIn 0.4s ease-out both;
+    }
+    .header-logo {
+      color: var(--text-muted);
+      text-decoration: none;
+      display: flex;
+      flex-shrink: 0;
+      transition: color 0.3s ease-out;
+    }
+    .header-logo svg {
+      width: 80px;
+      height: auto;
+    }
+    .form-fields-grid {
+      display: flex;
+      flex-direction: column;
+      gap: var(--layout-sm);
+      width: 100%;
+    }
+    .panels-wrapper {
+      display: contents;
+    }
+    .mobile-panel-toggle {
       display: none;
       gap: var(--gap-sm);
-      padding: 10px;
-      background: var(--bg-app);
-      border-bottom: 1px solid var(--border-dark);
+      padding: 0 16px;
+      flex-shrink: 0;
     }
-    .mobile-toggle-btn {
+    .pill-wide {
       flex: 1;
-      padding: 10px;
-      border: 1px solid var(--border-mid);
+      height: var(--size-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-badge);
+      font-size: var(--font-small);
+      line-height: 1.2;
+      cursor: pointer;
+      border: 0.6px solid var(--border-mid);
       background: var(--bg-panel-light);
       color: var(--text-primary);
-      font-size: var(--font-body);
       font-family: inherit;
-      cursor: pointer;
-      border-radius: var(--radius-button);
+      transition: background 0.3s ease-out, border-color 0.3s ease-out, color 0.3s ease-out;
+      user-select: none;
     }
-    .mobile-toggle-btn.is-active {
-      background: var(--border-mid);
-      border-color: var(--border-lighter);
+    .pill-wide.is-active {
+      background: var(--accent);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
+    }
+    .app-footer-responsive {
+      display: none;
+      font-size: var(--font-caption);
+      color: var(--text-muted);
+      text-align: center;
+      padding: 20px 16px 31px;
+      flex-shrink: 0;
     }
 
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .app.is-loaded .panel-params,
+    .app.is-loaded .panel-results,
+    .app.is-loaded .panel-preview {
+      animation: fadeIn 0.8s ease-out both;
+    }
+    .app.is-loaded .panel-params { animation-delay: 0.15s; }
+    .app.is-loaded .panel-preview { animation-delay: 0.35s; }
+    .app.is-loaded .panel-results { animation-delay: 0.55s; }
+
+    /* ===== HOVER STATES (pointer devices only) ===== */
+    @media (hover: hover) and (pointer: fine) {
+      .pill:not(.is-active):hover {
+        background: var(--border-mid);
+        border-color: var(--border-lighter);
+      }
+      .panel-results .pill:not(.is-active):hover {
+        background: var(--border-lighter);
+        border-color: var(--border-focus-light);
+      }
+      .panel-results .btn:hover,
+      .panel-results .btn--full:hover {
+        background: var(--accent);
+        border-color: var(--accent-border);
+        color: var(--accent-text);
+      }
+      .ctrl-btn:hover {
+        background: var(--accent);
+        border-color: var(--accent-border);
+      }
+      .btn:hover,
+      .btn--full:hover {
+        background: var(--accent);
+        border-color: var(--accent-border);
+        color: var(--accent-text);
+      }
+      .result-row.is-copyable:hover {
+        background: var(--border-mid);
+      }
+      .result-row.is-copyable .result-value:hover ~ .copy-tooltip {
+        opacity: 1;
+      }
+      .result-row.is-copyable.is-copied .result-value:hover ~ .copy-tooltip {
+        opacity: 0;
+      }
+      .footer-logo:hover,
+      .header-logo:hover {
+        color: var(--text-primary);
+      }
+      .pill-wide:hover {
+        background: var(--border-mid);
+        border-color: var(--border-lighter);
+      }
+    }
+
+    /* ===== RESPONSIVE: SHARED (≤1024px) ===== */
     @media (max-width: 1024px) {
-      html, body { overflow: auto; min-height: auto; }
+      html, body { overflow: visible; height: auto; }
       .app {
         flex-direction: column;
         height: auto;
-        min-height: 100vh;
+        min-height: 100svh;
       }
-      .panel-params { order: 1; }
-      .mobile-view-toggle { order: 2; }
-      .panel-preview { order: 3; }
-      .panel-results { order: 3; }
-      .panel-params, .panel-results, .panel-preview {
-        flex: none;
-        width: auto;
-        margin: 0;
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-      }
-      .panel-params { max-height: 50vh; }
-      .panel-results { height: 40vh; }
-      .mobile-view-toggle {
+      .app-header {
         display: flex;
-        position: sticky;
-        top: 0;
-        z-index: 10;
+        order: 1;
       }
-      body[data-mobile-view="results"] .panel-preview { display: none; }
-      body[data-mobile-view="results"] .panel-results { display: flex; }
-      body[data-mobile-view="grid"] .panel-results { display: none; }
-      body[data-mobile-view="grid"] .panel-preview { display: flex; }
-      .panel-preview { margin: 10px; min-height: 300px; }
-      .app-footer { position: static; text-align: center; padding: 16px; }
+      .panel-preview {
+        order: 2;
+        flex: none;
+        margin: 20px 20px 0;
+        padding-top: 0;
+      }
+      .preview-header { display: none; }
+      .canvas-wrap {
+        margin: 0;
+        height: 480px;
+        flex: none;
+        border: 0.6px solid var(--border-dark);
+        border-radius: var(--radius-card);
+      }
+      .panel-preview .app-footer { display: none; }
+      .panels-wrapper {
+        display: contents;
+      }
+      .panel-scroll {
+        overflow: visible;
+        flex: none;
+        width: 100%;
+        margin: 0;
+        padding: 0 20px;
+        order: 4;
+      }
+      .panel-scroll--params { order: 3; }
+      .panel-scroll--results { order: 4; }
+      .panel-params, .panel-results {
+        margin: 8px 0;
+        width: 100%;
+      }
+      .mobile-panel-toggle {
+        order: 3;
+      }
+      .app-footer-responsive {
+        display: block;
+        order: 6;
+      }
+      .btn--small { width: auto; flex: 1; }
+    }
+
+    /* ===== RESPONSIVE: TABLET (768–1024px) ===== */
+    @media (max-width: 1024px) and (min-width: 768px) {
+      .app-header { padding: 24px 20px 0; }
+      .form-fields-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .form-fields-grid .form-group:last-child {
+        grid-column: 1 / -1;
+      }
+      .result-table {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 16px;
+      }
+    }
+
+    /* ===== RESPONSIVE: MOBILE (≤767px) ===== */
+    @media (max-width: 767px) {
+      .app-header { padding: 24px 16px 0; }
+      .panel-preview {
+        margin: 20px 16px 0;
+      }
+      .mobile-panel-toggle {
+        display: flex;
+        order: 3;
+        margin-top: 20px;
+      }
+      .panels-wrapper {
+        display: flex;
+        order: 4;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        gap: 16px;
+        padding: 0 16px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 8px;
+      }
+      .panels-wrapper::-webkit-scrollbar { display: none; }
+      .panel-scroll {
+        padding: 0;
+        flex: 0 0 calc(100vw - 32px);
+        scroll-snap-align: start;
+        overflow: visible;
+        order: unset;
+      }
+      .panel-params, .panel-results {
+        margin: 0;
+      }
     }
   </style>
 </head>
 <body>
   <div class="app">
+    <!-- ===== HEADER (tablet/mobile) ===== -->
+    <header class="app-header">
+      <a href="https://khorei.com" target="_blank" rel="noopener noreferrer" class="header-logo">
+        <svg viewBox="0 0 84 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 0.12194H1.06718V2.74414H1.13687L3.95508 0.12194H5.2052V0.252615L2.02546 3.18408L5.29232 6.26365V6.39432H3.97251L1.13687 3.70678H1.06718V6.39432H0V0.12194Z" fill="currentColor"/>
+          <path d="M38.7706 0.12194H39.8422V2.77899H42.8825V0.12194H43.9584V6.39432H42.8825V3.71113H39.8422V6.39432H38.7706V0.12194Z" fill="currentColor"/>
+          <path d="M76.8836 3.25815C76.8836 1.19785 78.1338 0 80.0808 0C82.0322 0 83.2824 1.19785 83.2824 3.25815C83.2824 5.31846 82.0322 6.51631 80.0808 6.51631C78.1338 6.51631 76.8836 5.31846 76.8836 3.25815ZM77.977 3.25815C77.977 4.7522 78.7828 5.6103 80.0808 5.6103C81.3789 5.6103 82.1847 4.7522 82.1847 3.25815C82.1847 1.76411 81.3789 0.90601 80.0808 0.90601C78.7828 0.90601 77.977 1.76411 77.977 3.25815Z" fill="currentColor"/>
+          <path d="M3.14925 15.6093C4.25999 15.6093 5.14422 16.2452 5.14422 17.4213C5.14422 18.5973 4.30354 19.2333 3.27122 19.2333H2.61349L5.14422 21.751V21.8816H3.94201L1.29367 19.2115H1.20656V21.8816H0.148093V15.6093H3.14925ZM1.20656 18.4013H2.98809C3.64146 18.4013 4.10318 18.079 4.10318 17.4518C4.10318 16.8202 3.64146 16.4935 2.98809 16.4935H1.20656V18.4013Z" fill="currentColor"/>
+          <path d="M39.1083 15.6092H43.5599V16.4934H40.1754V18.2749H43.1243V19.1592H40.1754V20.9973H43.6209V21.8815H39.1083V15.6092Z" fill="currentColor"/>
+          <path d="M79.5451 15.6092H80.621V21.8816H79.5451V15.6092Z" fill="currentColor"/>
+          <path d="M0.463893 31.0967H1.53978V36.4413H4.82842V37.3691H0.463893V31.0967Z" fill="currentColor"/>
+          <path d="M40.6763 31.0968H42.0484L44.2655 37.2385V37.3692H43.1853L42.6147 35.7314H40.0883L39.5177 37.3692H38.4636V37.2385L40.6763 31.0968ZM40.3758 34.8254H42.3272L41.3863 32.1291H41.3166L40.3758 34.8254Z" fill="currentColor"/>
+          <path d="M80.4576 31.0967C81.5858 31.0967 82.4352 31.6064 82.4352 32.6692C82.4352 33.6667 81.7861 33.9977 81.429 34.0761V34.1458C81.8297 34.2373 82.5702 34.5553 82.5702 35.6399C82.5702 36.7985 81.6555 37.3691 80.5055 37.3691H77.5958V31.0967H80.4576ZM78.6543 36.4849H80.3618C81.0326 36.4849 81.5161 36.2366 81.5161 35.5571C81.5161 34.8776 81.0326 34.6337 80.3618 34.6337H78.6543V36.4849ZM78.6543 33.7494H80.3095C80.9411 33.7494 81.4115 33.5186 81.4115 32.8652C81.4115 32.2118 80.9411 31.981 80.3095 31.981H78.6543V33.7494Z" fill="currentColor"/>
+        </svg>
+      </a>
+      <div class="pill-group" id="langToggleHeader">
+        <button type="button" class="pill is-active" data-value="pl">Pl</button>
+        <button type="button" class="pill" data-value="en">En</button>
+      </div>
+    </header>
+
+    <!-- ===== PANELS WRAPPER ===== -->
+    <div class="panels-wrapper" id="panelsWrapper">
+
     <!-- ===== PANEL PARAMETRY ===== -->
     <div class="panel-scroll panel-scroll--params">
     <div class="panel-params" id="panelParams">
@@ -535,7 +711,7 @@
         </div>
       </div>
 
-      <div style="display:flex;flex-direction:column;gap:var(--layout-sm);width:100%">
+      <div class="form-fields-grid">
         <div class="form-group">
           <label class="form-label" data-i18n="page_width">Szerokość strony:</label>
           <div class="form-field">
@@ -652,12 +828,6 @@
 
     </div><!-- /panel-scroll params -->
 
-    <!-- ===== MOBILE TOGGLE ===== -->
-    <div class="mobile-view-toggle" id="mobileViewToggle">
-      <button type="button" class="mobile-toggle-btn is-active" data-view="grid">Grid</button>
-      <button type="button" class="mobile-toggle-btn" data-view="results" data-i18n="mobile_results">Ustawienie</button>
-    </div>
-
     <!-- ===== PANEL USTAWIENIE ===== -->
     <div class="panel-scroll panel-scroll--results">
     <div class="panel-results" id="panelResults">
@@ -680,6 +850,14 @@
     </div>
 
     </div><!-- /panel-scroll results -->
+
+    </div><!-- /panels-wrapper -->
+
+    <!-- ===== MOBILE PANEL TOGGLE ===== -->
+    <div class="mobile-panel-toggle" id="mobilePanelToggle">
+      <button type="button" class="pill-wide is-active" data-panel="params" data-i18n="mobile_params">Parametry siatki</button>
+      <button type="button" class="pill-wide" data-panel="results" data-i18n="mobile_results">Ustawienie</button>
+    </div>
 
     <!-- ===== PODGLAD ===== -->
     <div class="panel-preview" id="panelPreview">
@@ -712,6 +890,11 @@
         <span id="appFooter"></span>
       </div>
     </div>
+
+    <!-- ===== RESPONSIVE FOOTER (tablet/mobile) ===== -->
+    <div class="app-footer-responsive" id="responsiveFooter">
+      <span id="appFooterResponsive"></span>
+    </div>
   </div>
 
   <script>
@@ -738,6 +921,7 @@
         btn_download: 'Pobierz grid',
         results_title: 'Ustawienie:',
         preview_title: 'Podgląd:',
+        mobile_params: 'Parametry siatki',
         mobile_results: 'Ustawienie',
         unit_pt: 'pkt',
         unit_input: '', // set dynamically
@@ -759,7 +943,7 @@
         r_margin_r: 'Margines prawy:',
         copy: 'Kopiuj',
         copied: 'Skopiowano!',
-        footer: 'Grid (App)©{year} Radosław Prośniak — KHR(LAB)'
+        footer: 'grid.app ©{year} Radosław Prośniak — KHR(LAB)'
       },
       en: {
         params_title: 'Parameters:',
@@ -780,6 +964,7 @@
         btn_download: 'Download grid',
         results_title: 'Settings:',
         preview_title: 'Preview:',
+        mobile_params: 'Grid parameters',
         mobile_results: 'Settings',
         unit_pt: 'pt',
         unit_input: '',
@@ -801,7 +986,7 @@
         r_margin_r: 'Right margin:',
         copy: 'Copy',
         copied: 'Copied!',
-        footer: 'Grid (App)©{year} Radosław Prośniak — KHR(LAB)'
+        footer: 'grid.app ©{year} Radosław Prośniak — KHR(LAB)'
       }
     };
 
@@ -824,8 +1009,10 @@
       if (ptPill) ptPill.textContent = t('unit_pt');
       if (unitPill) unitPill.textContent = currentUnit;
       // Footer
-      document.getElementById('appFooter').textContent =
-        t('footer').replace('{year}', new Date().getFullYear());
+      const footerText = t('footer').replace('{year}', new Date().getFullYear());
+      document.getElementById('appFooter').textContent = footerText;
+      const respFooter = document.getElementById('appFooterResponsive');
+      if (respFooter) respFooter.textContent = footerText;
       recalcAndDraw();
     }
 
@@ -858,8 +1045,22 @@
       saveState();
     });
 
+    function syncLangToggles(val) {
+      document.querySelectorAll('#langToggle .pill, #langToggleHeader .pill').forEach(p => {
+        p.classList.toggle('is-active', p.dataset.value === val);
+      });
+    }
+
     initPillGroup('langToggle', val => {
       currentLang = val;
+      syncLangToggles(val);
+      applyLanguage();
+      saveState();
+    });
+
+    initPillGroup('langToggleHeader', val => {
+      currentLang = val;
+      syncLangToggles(val);
       applyLanguage();
       saveState();
     });
@@ -998,7 +1199,7 @@
         columns: document.getElementById('columns').value,
         hModules: document.getElementById('hModules').value,
         gutterWidth: document.getElementById('gutterWidth').value,
-        mobileView: document.body.dataset.mobileView || 'grid'
+        mobilePanel: 'params'
       };
       localStorage.setItem('gridApp_state', JSON.stringify(state));
     }
@@ -1022,9 +1223,7 @@
         }
         if (s.lang) {
           currentLang = s.lang;
-          document.querySelectorAll('#langToggle .pill').forEach(p => {
-            p.classList.toggle('is-active', p.dataset.value === currentLang);
-          });
+          syncLangToggles(currentLang);
         }
         if (s.pageWidth) document.getElementById('pageWidth').value = s.pageWidth;
         if (s.pageHeight) document.getElementById('pageHeight').value = s.pageHeight;
@@ -1041,37 +1240,47 @@
           lastValidHModules = Number.isFinite(hv) && hv >= 1 ? hv : 1;
         }
         if (s.gutterWidth !== undefined) document.getElementById('gutterWidth').value = s.gutterWidth;
-        if (s.mobileView) document.body.dataset.mobileView = s.mobileView;
+        // mobilePanel state handled by scroll position
       } catch(e) {}
     }
 
     loadState();
 
     /* ========================================
-       MOBILE TOGGLE
+       MOBILE PANEL TOGGLE (slider)
     ======================================== */
-    function setMobileView(view) {
-      const v = (view === 'results') ? 'results' : 'grid';
-      document.body.dataset.mobileView = v;
-      const toggle = document.getElementById('mobileViewToggle');
-      if (toggle) {
-        toggle.querySelectorAll('.mobile-toggle-btn').forEach(btn => {
-          btn.classList.toggle('is-active', btn.dataset.view === v);
-        });
-      }
-      if (v === 'grid') requestAnimationFrame(() => recalcAndDraw());
-      saveState();
-    }
+    (function initMobilePanelToggle() {
+      const toggle = document.getElementById('mobilePanelToggle');
+      const wrapper = document.getElementById('panelsWrapper');
+      if (!toggle || !wrapper) return;
 
-    (function initMobileToggle() {
-      if (!document.body.dataset.mobileView) document.body.dataset.mobileView = 'grid';
-      const toggle = document.getElementById('mobileViewToggle');
-      if (!toggle) return;
       toggle.addEventListener('click', e => {
-        const btn = e.target.closest('.mobile-toggle-btn');
-        if (btn) setMobileView(btn.dataset.view);
+        const pill = e.target.closest('.pill-wide');
+        if (!pill) return;
+        toggle.querySelectorAll('.pill-wide').forEach(p => p.classList.remove('is-active'));
+        pill.classList.add('is-active');
+        const panel = pill.dataset.panel;
+        if (panel === 'results') {
+          const target = wrapper.querySelector('.panel-scroll--results');
+          if (target) wrapper.scrollTo({ left: target.offsetLeft - wrapper.offsetLeft, behavior: 'smooth' });
+        } else {
+          wrapper.scrollTo({ left: 0, behavior: 'smooth' });
+        }
       });
-      setMobileView(document.body.dataset.mobileView);
+
+      // Sync pill state on scroll end
+      let scrollTimer;
+      wrapper.addEventListener('scroll', () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+          const half = wrapper.scrollWidth / 2;
+          const isResults = wrapper.scrollLeft > half * 0.4;
+          toggle.querySelectorAll('.pill-wide').forEach(p => {
+            const isActive = isResults ? p.dataset.panel === 'results' : p.dataset.panel === 'params';
+            p.classList.toggle('is-active', isActive);
+          });
+        }, 100);
+      }, { passive: true });
     })();
 
     /* ========================================
@@ -1174,20 +1383,29 @@
     function copyValue(rowEl, value) {
       navigator.clipboard.writeText(value).then(() => {
         const tooltip = rowEl.querySelector('.copy-tooltip');
-        if (tooltip) {
-          tooltip.textContent = t('copied');
-          setTimeout(() => {
-            rowEl.classList.add('is-copied');
-            const reset = () => {
-              tooltip.textContent = t('copy');
-              rowEl.classList.remove('is-copied');
-            };
+        if (!tooltip) return;
+        tooltip.textContent = t('copied');
+        rowEl.classList.add('is-just-copied');
+
+        setTimeout(() => {
+          rowEl.classList.remove('is-just-copied');
+          rowEl.classList.add('is-copied');
+          const reset = () => {
+            tooltip.textContent = t('copy');
+            rowEl.classList.remove('is-copied');
+          };
+          // On pointer devices: wait for mouse leave then re-enter
+          const isTouch = !window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+          if (isTouch) {
+            // On touch: just reset after a short delay
+            setTimeout(reset, 500);
+          } else {
             const onLeave = () => {
               rowEl.addEventListener('mouseenter', () => reset(), { once: true });
             };
             rowEl.addEventListener('mouseleave', onLeave, { once: true });
-          }, 2000);
-        }
+          }
+        }, 2000);
       });
     }
 
@@ -1488,7 +1706,14 @@
     /* ========================================
        INIT
     ======================================== */
-    window.addEventListener('load', () => { applyLanguage(); recalcAndDraw(); });
+    window.addEventListener('load', () => {
+      applyLanguage();
+      recalcAndDraw();
+      const app = document.querySelector('.app');
+      app.classList.add('is-loaded');
+      // Remove class after animations complete to prevent replays
+      setTimeout(() => app.classList.remove('is-loaded'), 1500);
+    });
     window.addEventListener('resize', recalcAndDraw);
   </script>
 </body>
