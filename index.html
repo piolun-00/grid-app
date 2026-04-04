@@ -307,7 +307,8 @@
       transition: background 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out;
       flex-shrink: 0;
     }
-    .ctrl-btn:active {
+    .ctrl-btn:active,
+    .ctrl-btn.is-pressed {
       background: var(--accent-border);
       border-color: var(--accent-border-light);
       color: var(--accent);
@@ -1099,6 +1100,17 @@
         recalcAndDraw();
         saveState();
       });
+
+      // Touch feedback
+      btn.addEventListener('touchstart', () => {
+        btn.classList.add('is-pressed');
+      }, { passive: true });
+      btn.addEventListener('touchend', () => {
+        setTimeout(() => btn.classList.remove('is-pressed'), 150);
+      }, { passive: true });
+      btn.addEventListener('touchcancel', () => {
+        btn.classList.remove('is-pressed');
+      }, { passive: true });
     });
 
     /* ========================================
