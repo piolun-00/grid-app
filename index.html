@@ -2,13 +2,55 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Gerstner Grid – Poprzednie ustawienie (dynamiczna skala w JS)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grid App — Gerstner Grid Calculator</title>
   <style>
-    html, body {
-      overflow: hidden;
-      margin: 0;
-      padding: 0;
+    /* ===== DESIGN TOKENS ===== */
+    :root {
+      --radius-card: 6px;
+      --radius-input: 8px;
+      --radius-button: 4px;
+      --radius-badge: 9999px;
+      --gap-xs: 4px;
+      --gap-sm: 8px;
+      --gap-md: 16px;
+      --gap-lg: 20px;
+      --layout-xs: 8px;
+      --layout-sm: 16px;
+      --layout-md: 20px;
+      --layout-lg: 32px;
+      --pad-h-xs: 8px;
+      --pad-h-sm: 12px;
+      --pad-h-md: 16px;
+      --pad-h-lg: 20px;
+      --pad-v-xs: 4px;
+      --pad-v-xl: 12px;
+      --size-xs: 24px;
+      --size-sm: 32px;
+      --size-md: 40px;
+      --size-lg: 48px;
+      --font-h4: 28px;
+      --font-body: 14px;
+      --font-small: 12px;
+      --font-caption: 9px;
+      /* Colors */
+      --bg-app: #111;
+      --bg-panel-dark: #2E2E2E;
+      --bg-panel-light: #555;
+      --border-dark: #222;
+      --border-mid: #717171;
+      --border-light: #777;
+      --border-lighter: #8F8F8F;
+      --border-focus-light: #AEAEAE;
+      --text-primary: #DEDEDE;
+      --text-muted: #555;
+      --accent: #D11C1C;
+      --accent-border: #F94138;
+      --accent-border-light: #FA6A5C;
+      --accent-text: #FDD3CC;
     }
+
+    /* ===== FONT ===== */
     @font-face {
       font-family: 'Fragment Mono';
       src: url('Typefaces/fragment_mono/FragmentMono-Regular.woff2') format('woff2'),
@@ -25,512 +67,840 @@
       font-weight: normal;
       font-style: italic;
     }
+
+    /* ===== BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      overflow: hidden;
+      height: 100svh;
+    }
     body {
       font-family: 'Fragment Mono', monospace;
-      background: #fff;
-      color: #000;
-      font-size: 14px;
-      transition: background 0.3s, color 0.3s;
+      background: var(--bg-app);
+      color: var(--text-primary);
+      font-size: var(--font-body);
     }
-    .container {
+
+    /* ===== LAYOUT ===== */
+    .app {
       display: flex;
-      flex-direction: row;
-      height: 100vh;
-      margin: 0;
+      height: 100svh;
+      position: relative;
     }
-    .controls {
-      flex: 0 0 20svw;
-      min-width: 200px;
-      padding: 20px;
-      background: #f5f5f5;
-      box-sizing: border-box;
-      border-right: 1px solid #ddd;
+
+    /* ===== PANEL PARAMETRY ===== */
+    .panel-scroll {
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scrollbar-width: none;
+    }
+    .panel-scroll::-webkit-scrollbar {
+      display: none;
+    }
+    .panel-scroll--params {
+      flex: 0 0 332px;
+      margin-left: 32px;
+    }
+    .panel-scroll--results {
+      flex: 0 0 332px;
+      margin-left: 16px;
+    }
+    .panel-params {
+      margin: 32px 0;
+      background: var(--bg-panel-dark);
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius-card);
+      padding: var(--pad-v-xl) var(--pad-h-md) var(--pad-h-lg);
       display: flex;
       flex-direction: column;
-      overflow-y: auto;
+      gap: var(--gap-md);
     }
-    .controls h2 {
-      margin: 0 0 20px 0;
-      font-size: 32px;
-      font-weight: normal;
-      line-height: 1;
-    }
-
     .panel-title {
-      margin: 0 0 20px 0;
-      font-size: 32px;
+      font-size: var(--font-h4);
       font-weight: normal;
       line-height: 1;
     }
-    .controls label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-    .controls input,
-    .controls select {
-      width: 100%;
-      margin-bottom: 16px;
-      padding: 8px;
-      border: 1px solid #ccc;
-      background: #fff;
-      box-sizing: border-box;
-      font-size: 14px;
-      font-family: 'Fragment Mono', monospace;
-    }
-    .controls button {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      background: #fff;
-      font-size: 14px;
-      font-family: 'Fragment Mono', monospace;
-      transition: background 0.3s;
-    }
-    .controls button:hover {
-      background: #ddd;
-      cursor: pointer;
-    }
-    .download-button {
-      margin-top: 20px;
-      padding: 10px;
-      font-size: 14px;
-      font-family: 'Fragment Mono', monospace;
-      border: 1px solid #ccc;
-      background: #fff;
-      color: #000;
-      cursor: pointer;
-      transition: background 0.3s, border 0.3s;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    .download-button:hover {
-      background: #f0f0f0;
-      border-color: #bbb;
+
+    /* ===== PANEL USTAWIENIE ===== */
+    .panel-results {
+      margin: 32px 0;
+      background: var(--bg-panel-light);
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius-card);
+      padding: var(--pad-v-xl) var(--pad-h-md) var(--pad-h-lg);
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap-md);
     }
 
-    /* Mobile przełącznik widoku (Grid vs Ustawienie) */
-    .mobile-view-toggle {
-      display: none;
-      gap: 8px;
-      padding: 10px;
-      box-sizing: border-box;
-      background: #fff;
-      border-bottom: 1px solid #ddd;
-    }
-    .mobile-toggle-btn {
+    /* ===== CANVAS AREA ===== */
+    .panel-preview {
       flex: 1;
-      padding: 10px;
-      border: 1px solid #ccc;
-      background: #fff;
-      font-size: 14px;
-      font-family: 'Fragment Mono', monospace;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
+      margin: 32px;
+      padding-top: var(--pad-v-xl);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
     }
-    .mobile-toggle-btn.is-active {
-      background: #eaeaea;
-      border-color: #bbb;
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--layout-sm);
+      flex-shrink: 0;
     }
-    body.dark-mode .mobile-view-toggle {
-      background: #111;
-      border-bottom: 1px solid #333;
+    .preview-title {
+      font-size: var(--font-h4);
+      font-weight: normal;
     }
-    body.dark-mode .mobile-toggle-btn {
-      background: #333;
-      border: 1px solid #444;
-      color: #fff;
-    }
-    body.dark-mode .mobile-toggle-btn.is-active {
-      background: #444;
-      border-color: #555;
-    }
-    body.dark-mode .download-button {
-      background: #333;
-      border: 1px solid #444;
-      color: #eee;
-    }
-    body.dark-mode .download-button:hover {
-      background: #444;
-      border-color: #555;
-    }
-    .canvas-container {
+    .canvas-wrap {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-sizing: border-box;
-      margin: 32px;
-      position: relative;
-      --pad-top: 20px;
-      --pad-right: 20px;
-      --pad-bottom: 20px;
-      --pad-left: 20px;
-      padding: var(--pad-top) var(--pad-right) var(--pad-bottom) var(--pad-left);
-      background: #fff;
       overflow: hidden;
-      flex-direction: column;
-      gap: 12px;
+      margin-top: 18px;
+      margin-bottom: 42px;
     }
     canvas {
       background: #fff;
-      border: 1px solid #ccc;
-    }
-    .results-panel {
-      flex: 0 0 auto;
-      width: max-content;
-      min-width: 200px;
-      padding: 20px;
-      background: #fafafa;
-      box-sizing: border-box;
-      border-right: 1px solid #ddd;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-    }
-    .results-panel table {
-      width: max-content;
-      border-collapse: collapse;
-      font-size: 14px;
-      color: #000;
-      margin: 0;
-      padding: 0;
-    }
-    .results-panel th,
-    .results-panel td {
-      padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-      vertical-align: top;
-    }
-    .results-panel tbody tr:nth-child(odd) {
-      background: #F9F9F9;
-    }
-    .results-panel tbody tr:nth-child(even) {
-      background: #E5E5E5;
-    }
-    .results-panel th {
-      font-size: 14px;
-      font-weight: normal;
-      border: none;
+      display: block;
     }
 
-    /* Ustawienie: etykiety mogą się łamać, dane w "kawałkach" bez rozrywania */
-    .results-panel td:first-child {
-      white-space: normal;
-    }
-    .results-panel td:last-child {
-      white-space: normal;
-    }
-    .nowrap {
-      white-space: nowrap;
-    }
-    .toggle-container {
-      margin-top: auto;
-      padding-top: 10px;
-      border-top: 1px solid #ddd;
-    }
-    .toggle-container label {
+    /* ===== UNIT CONTROL (pill buttons) ===== */
+    .unit-control {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      font-size: 14px;
+      gap: var(--layout-xs);
     }
-    .toggle-switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 24px;
+    .unit-control-label {
+      font-size: var(--font-small);
+      white-space: nowrap;
     }
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
+    .pill-group {
+      display: flex;
+      gap: var(--gap-xs);
     }
-    .slider {
-      position: absolute;
+    .pill {
+      width: var(--size-lg);
+      height: var(--size-xs);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-badge);
+      font-size: var(--font-small);
+      line-height: 1.2;
       cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: 0.4s;
-      border-radius: 24px;
+      border: 0.6px solid var(--border-mid);
+      background: var(--bg-panel-light);
+      color: var(--text-primary);
+      font-family: inherit;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      user-select: none;
     }
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 20px;
-      width: 20px;
-      left: 2px;
-      bottom: 2px;
-      background-color: white;
-      transition: 0.4s;
-      border-radius: 50%;
+    .pill:hover {
+      background: var(--border-mid);
+      border-color: var(--border-lighter);
     }
-    input:checked + .slider {
-      background-color: #C8D5BB;
+    .pill.is-active {
+      background: var(--accent);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
     }
-    input:checked + .slider:before {
-      transform: translateX(26px);
-    }
-    .footer {
-      margin-top: 10px;
-      font-family: 'Fragment Mono', monospace;
-      font-size: 14px;
-      text-align: left;
-      color: inherit;
-    }
-    .footer a {
-      text-decoration: underline;
-      color: inherit;
-    }
-    body.dark-mode {
-      background: #111;
-      color: #fff;
-    }
-    body.dark-mode .controls {
-      background: #222;
-      border-right: 1px solid #333;
-    }
-    body.dark-mode .controls input,
-    body.dark-mode .controls select,
-    body.dark-mode .controls button {
-      background: #333;
-      border: 1px solid #444;
-      color: #fff;
-    }
-    body.dark-mode .controls button:hover {
-      background: #555;
-    }
-    body.dark-mode .results-panel {
-      background: #222;
-      border-right: 1px solid #333;
-    }
-    body.dark-mode .results-panel table {
-      color: #eee;
-    }
-    body.dark-mode .results-panel th,
-    body.dark-mode .results-panel td {
-      border-bottom: 1px solid #444;
-    }
-    body.dark-mode .results-panel tbody tr:nth-child(odd) {
-      background: #333;
-    }
-    body.dark-mode .results-panel tbody tr:nth-child(even) {
-      background: #2a2a2a;
-    }
-    body.dark-mode .toggle-container {
-      border-top: 1px solid #333;
-    }
-    body.dark-mode .canvas-container {
-      background: #111;
-    }
-    body.dark-mode .footer {
-      background: #222;
-      color: #fff;
-    }
-    @media (max-width: 1024px) {
-      /* Na wąskich ekranach pozwalamy na przewijanie całej strony */
-      html, body {
-        overflow: auto;
-      }
 
-      .container {
+    /* ===== LIGHT VARIANT (panel Ustawienie) ===== */
+    .panel-results .pill {
+      background: var(--border-mid);
+      border-color: var(--border-lighter);
+    }
+    .panel-results .pill:hover {
+      background: var(--border-lighter);
+      border-color: var(--border-focus-light);
+    }
+    .panel-results .pill.is-active {
+      background: var(--accent);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
+    }
+    .panel-results .btn {
+      background: var(--border-mid);
+      border-color: var(--border-lighter);
+    }
+    .panel-results .btn:hover {
+      background: var(--accent);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
+    }
+    .panel-results .btn:active {
+      background: var(--accent-border);
+      border-color: var(--accent-border-light);
+      color: var(--accent);
+    }
+    .panel-results .btn--full {
+      background: var(--border-mid);
+      border-color: var(--border-lighter);
+    }
+    .panel-results .btn--full:hover {
+      background: var(--accent);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
+    }
+    .panel-results .btn--full:active {
+      background: var(--accent-border);
+      border-color: var(--accent-border-light);
+      color: var(--accent);
+    }
+
+    /* ===== FORM FIELD ===== */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap-xs);
+      width: 100%;
+    }
+    .form-label {
+      font-size: var(--font-small);
+    }
+    .form-field {
+      display: flex;
+      align-items: center;
+      gap: var(--gap-lg);
+      height: var(--size-sm);
+      background: var(--bg-panel-light);
+      border: 0.6px solid var(--border-mid);
+      border-radius: var(--radius-input);
+      padding: 0 var(--pad-h-sm);
+    }
+    .form-field:focus-within {
+      background: var(--border-mid);
+      border-color: var(--border-lighter);
+    }
+    .form-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: var(--font-body);
+      font-family: inherit;
+      min-width: 0;
+    }
+
+    /* ===== CONTROL BUTTONS (±) ===== */
+    .form-controls {
+      display: flex;
+      gap: var(--gap-xs);
+      align-items: center;
+    }
+    .ctrl-btn {
+      width: 16px;
+      height: 16px;
+      border-radius: var(--radius-badge);
+      background: var(--bg-panel-light);
+      border: 0.4px solid var(--border-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .ctrl-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent-border);
+    }
+    .ctrl-btn:active {
+      background: var(--accent-border);
+      border-color: var(--accent-border-light);
+    }
+    .ctrl-btn.is-inactive {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+    .ctrl-btn svg {
+      width: 10px;
+      height: 10px;
+      color: var(--text-primary);
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn-row {
+      display: flex;
+      gap: var(--gap-sm);
+      width: 100%;
+    }
+    .btn {
+      height: var(--size-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--gap-xs);
+      padding: 0 var(--pad-h-sm);
+      border-radius: var(--radius-button);
+      font-size: var(--font-body);
+      font-family: inherit;
+      cursor: pointer;
+      border: 0.6px solid var(--border-mid);
+      background: var(--bg-panel-light);
+      color: var(--text-primary);
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .btn:hover {
+      background: var(--accent);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
+    }
+    .btn:active {
+      background: var(--accent-border);
+      border-color: var(--accent-border-light);
+      color: var(--accent);
+    }
+    .btn--small { width: 146px; }
+    .btn--full {
+      width: 100%;
+      background: var(--border-mid);
+      border-color: var(--border-lighter);
+      gap: var(--gap-sm);
+    }
+    .btn--full:hover {
+      background: var(--accent);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
+    }
+    .btn svg {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    /* ===== RESULTS TABLE ===== */
+    .result-table {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    .result-row {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      align-items: center;
+      height: var(--size-sm);
+      padding: 0 2px;
+      font-size: var(--font-small);
+      border-bottom: 0.6px solid var(--border-light);
+      position: relative;
+    }
+    .result-row.is-copyable {
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .result-row.is-copyable:hover {
+      background: var(--border-mid);
+    }
+    .result-value {
+      text-align: right;
+    }
+
+    /* ===== COPY TOOLTIP ===== */
+    .copy-tooltip {
+      position: absolute;
+      right: 0;
+      bottom: -2px;
+      transform: translateY(100%);
+      width: 72px;
+      height: 19px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-panel-dark);
+      border: 0.6px solid var(--border-dark);
+      border-radius: var(--radius-button);
+      font-size: var(--font-caption);
+      color: var(--text-primary);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+      box-shadow: 0 0 1px rgba(46,46,46,0.29),
+                  0 2px 2px rgba(46,46,46,0.25),
+                  0 3px 2px rgba(46,46,46,0.15),
+                  0 6px 2px rgba(46,46,46,0.04),
+                  0 9px 3px rgba(46,46,46,0.01);
+      z-index: 10;
+    }
+    .result-row.is-copyable:hover .copy-tooltip {
+      opacity: 1;
+    }
+    .result-row.is-copyable.is-copied:hover .copy-tooltip {
+      opacity: 0;
+    }
+
+    /* ===== FOOTER ===== */
+    .app-footer {
+      font-size: var(--font-caption);
+      color: var(--text-muted);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .footer-logo {
+      color: var(--text-muted);
+      text-decoration: none;
+      display: flex;
+      flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .footer-logo svg {
+      width: 80px;
+      height: auto;
+    }
+    .footer-logo:hover {
+      color: var(--text-primary);
+    }
+
+    /* ===== MOBILE ===== */
+    .mobile-view-toggle {
+      display: none;
+      gap: var(--gap-sm);
+      padding: 10px;
+      background: var(--bg-app);
+      border-bottom: 1px solid var(--border-dark);
+    }
+    .mobile-toggle-btn {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid var(--border-mid);
+      background: var(--bg-panel-light);
+      color: var(--text-primary);
+      font-size: var(--font-body);
+      font-family: inherit;
+      cursor: pointer;
+      border-radius: var(--radius-button);
+    }
+    .mobile-toggle-btn.is-active {
+      background: var(--border-mid);
+      border-color: var(--border-lighter);
+    }
+
+    @media (max-width: 1024px) {
+      html, body { overflow: auto; min-height: auto; }
+      .app {
         flex-direction: column;
-        align-items: stretch;
         height: auto;
         min-height: 100vh;
       }
-
-      /* Kolejność sekcji: Parametry -> przełącznik -> (Grid lub Ustawienie) */
-      .controls { order: 1; }
+      .panel-params { order: 1; }
       .mobile-view-toggle { order: 2; }
-      .canvas-container { order: 3; }
-      .results-panel { order: 3; }
-
-      .controls, .results-panel, .canvas-container {
+      .panel-preview { order: 3; }
+      .panel-results { order: 3; }
+      .panel-params, .panel-results, .panel-preview {
         flex: none;
-        width: 100%;
+        width: auto;
         margin: 0;
-        box-sizing: border-box;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
       }
-
+      .panel-params { max-height: 50vh; }
+      .panel-results { height: 40vh; }
       .mobile-view-toggle {
         display: flex;
         position: sticky;
         top: 0;
         z-index: 10;
       }
-
-      /* Widok przełączany: na mobile pokazujemy albo siatkę, albo dane */
-      body[data-mobile-view="results"] .canvas-container { display: none; }
-      body[data-mobile-view="results"] .results-panel { display: block; }
-      body[data-mobile-view="grid"] .results-panel { display: none; }
-      body[data-mobile-view="grid"] .canvas-container { display: flex; }
-
-      /* Na tym breakpoincie Grid ma działać jak Parametry: normalnie przewija się razem ze stroną, a wewnątrz ma własny scroll */
-      .controls {
-        max-height: 50vh;
-        overflow-y: auto;
-        overscroll-behavior: contain;
-      }
-      .results-panel {
-        position: static;
-        height: 40vh;
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
-      }
-      .results-panel table {
-  width: 100%;
-}
-
-      /* Canvas sekcja bez dużych marginesów, bo to zabija miejsce */
-      .canvas-container {
-        margin: 0;
-        --pad-top: 10px;
-        --pad-right: 10px;
-        --pad-bottom: 10px;
-        --pad-left: 10px;
-        padding: var(--pad-top) var(--pad-right) var(--pad-bottom) var(--pad-left);
-      }
+      body[data-mobile-view="results"] .panel-preview { display: none; }
+      body[data-mobile-view="results"] .panel-results { display: flex; }
+      body[data-mobile-view="grid"] .panel-results { display: none; }
+      body[data-mobile-view="grid"] .panel-preview { display: flex; }
+      .panel-preview { margin: 10px; min-height: 300px; }
+      .app-footer { position: static; text-align: center; padding: 16px; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="controls">
-      <h2>Parametry</h2>
+  <div class="app">
+    <!-- ===== PANEL PARAMETRY ===== -->
+    <div class="panel-scroll panel-scroll--params">
+    <div class="panel-params" id="panelParams">
+      <div class="panel-title" data-i18n="params_title">Parametry:</div>
 
-      <label>Jednostka:</label>
-      <select id="unit">
-        <option value="mm">mm</option>
-        <option value="px">px</option>
-      </select>
-
-      <label>Szerokość strony:</label>
-      <input type="text" id="pageWidth" value="210.00" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" />
-
-      <label>Wysokość strony:</label>
-      <input type="text" id="pageHeight" value="297.00" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" />
-
-      <label>Margines górny:</label>
-      <input type="text" id="marginTop" value="5.00" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" />
-
-      <label>Margines dolny:</label>
-      <input type="text" id="marginBottom" value="5.00" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" />
-
-      <label>Margines lewy:</label>
-      <input type="text" id="marginLeft" value="5.00" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" />
-
-      <label>Margines prawy:</label>
-      <input type="text" id="marginRight" value="5.00" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" />
-
-      <label>Wielkość fontu (pt) – stała:</label>
-      <input type="text" id="fontSize" value="8.00" inputmode="decimal" class="decimal-input" data-min="1" data-decimals="2" />
-
-      <label>Współczynnik interlinii:</label>
-      <input type="text" id="lineHeight" value="1.20" inputmode="decimal" class="decimal-input" data-min="0.1" data-decimals="2" />
-
-      <label>Liczba kolumn:</label>
-      <input type="number" id="columns" value="1" min="1" />
-
-      <label>Moduły poziome:</label>
-      <input type="number" id="hModules" value="1" min="1" />
-
-      <label>Odstęp między kolumnami:</label>
-      <input type="text" id="gutter" value="" placeholder="auto" inputmode="decimal" class="decimal-input" data-min="0" data-decimals="2" data-auto="1" />
-
-      <button id="recalc" class="reset-button" style="margin-bottom:12px;">Przelicz i rysuj</button>
-      <button id="reset" class="reset-button">Reset</button>
-
-      <div class="toggle-container">
-        <label>
-          Tryb ciemny
-          <div class="toggle-switch">
-            <input type="checkbox" id="darkModeToggle">
-            <span class="slider"></span>
-          </div>
-        </label>
+      <div class="unit-control">
+        <span class="unit-control-label" data-i18n="unit_label">Jednostka:</span>
+        <div class="pill-group" id="unitToggle">
+          <button type="button" class="pill is-active" data-value="mm">mm</button>
+          <button type="button" class="pill" data-value="px">px</button>
+        </div>
       </div>
 
-      <div class="footer">
-        <p>WGC©2025 Designed by Radek Prośniak <a href="https://www.instagram.com/khorei.studio/" target="_blank">KHOREI</a></p>
+      <div style="display:flex;flex-direction:column;gap:var(--layout-sm);width:100%">
+        <div class="form-group">
+          <label class="form-label" data-i18n="page_width">Szerokość strony:</label>
+          <div class="form-field">
+            <input class="form-input decimal-input" id="pageWidth" type="text" value="210.00" inputmode="decimal" data-min="0" data-decimals="2">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="page_height">Wysokość strony:</label>
+          <div class="form-field">
+            <input class="form-input decimal-input" id="pageHeight" type="text" value="297.00" inputmode="decimal" data-min="0" data-decimals="2">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="margin_top">Margines górny:</label>
+          <div class="form-field">
+            <input class="form-input decimal-input" id="marginTop" type="text" value="5.00" inputmode="decimal" data-min="0" data-decimals="2">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="margin_bottom">Margines dolny:</label>
+          <div class="form-field">
+            <input class="form-input decimal-input" id="marginBottom" type="text" value="5.00" inputmode="decimal" data-min="0" data-decimals="2">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="margin_left">Margines lewy:</label>
+          <div class="form-field">
+            <input class="form-input decimal-input" id="marginLeft" type="text" value="5.00" inputmode="decimal" data-min="0" data-decimals="2">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="margin_right">Margines prawy:</label>
+          <div class="form-field">
+            <input class="form-input decimal-input" id="marginRight" type="text" value="5.00" inputmode="decimal" data-min="0" data-decimals="2">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="font_size">Wielkość fontu (pt):</label>
+          <div class="form-field">
+            <input class="form-input decimal-input" id="fontSize" type="text" value="8.00" inputmode="decimal" data-min="1" data-decimals="2">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="line_height">Współczynnik interlinii:</label>
+          <div class="form-field">
+            <input class="form-input decimal-input" id="lineHeight" type="text" value="1.20" inputmode="decimal" data-min="0.1" data-decimals="2">
+            <div class="form-controls">
+              <button type="button" class="ctrl-btn" data-target="lineHeight" data-dir="-1">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.45801 4.49609H8.54201V5.50409H1.45801V4.49609Z" fill="currentColor"/></svg>
+              </button>
+              <button type="button" class="ctrl-btn" data-target="lineHeight" data-dir="1">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.49006 4.51006H8.38806V5.49006H5.49006V8.38806H4.51006V5.49006H1.61206V4.51006H4.51006V1.61206H5.49006V4.51006Z" fill="currentColor"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="modules">Liczba modułów:</label>
+          <div class="form-field">
+            <input class="form-input" id="hModules" type="text" inputmode="numeric" value="1" data-min="1" data-int="true">
+            <div class="form-controls">
+              <button type="button" class="ctrl-btn" data-target="hModules" data-dir="-1">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.45801 4.49609H8.54201V5.50409H1.45801V4.49609Z" fill="currentColor"/></svg>
+              </button>
+              <button type="button" class="ctrl-btn" data-target="hModules" data-dir="1">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.49006 4.51006H8.38806V5.49006H5.49006V8.38806H4.51006V5.49006H1.61206V4.51006H4.51006V1.61206H5.49006V4.51006Z" fill="currentColor"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="columns">Liczba kolumn:</label>
+          <div class="form-field">
+            <input class="form-input" id="columns" type="text" inputmode="numeric" value="1" data-min="1" data-int="true">
+            <div class="form-controls">
+              <button type="button" class="ctrl-btn" data-target="columns" data-dir="-1">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.45801 4.49609H8.54201V5.50409H1.45801V4.49609Z" fill="currentColor"/></svg>
+              </button>
+              <button type="button" class="ctrl-btn" data-target="columns" data-dir="1">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.49006 4.51006H8.38806V5.49006H5.49006V8.38806H4.51006V5.49006H1.61206V4.51006H4.51006V1.61206H5.49006V4.51006Z" fill="currentColor"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" data-i18n="gutter">Odstęp między kolumnami:</label>
+          <div class="form-field">
+            <input class="form-input decimal-input" id="gutterWidth" type="text" value="" inputmode="decimal" data-min="0" data-decimals="2" placeholder="auto">
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn btn--small" id="recalc">
+          <span data-i18n="btn_draw">Rysuj</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12.765 21C11.955 21 11.2725 20.7225 10.7175 20.1675C10.1625 19.6125 9.885 18.945 9.885 18.165C9.885 17.025 10.3462 15.9937 11.2687 15.0713C12.1912 14.1488 13.3425 13.575 14.7225 13.35C14.6775 12.81 14.5425 12.4012 14.3175 12.1237C14.0925 11.8462 13.785 11.7075 13.395 11.7075C12.945 11.7075 12.4575 11.895 11.9325 12.27C11.4075 12.645 10.785 13.26 10.065 14.115C8.895 15.51 8.03625 16.4175 7.48875 16.8375C6.94125 17.2575 6.3525 17.4675 5.7225 17.4675C4.9575 17.4675 4.3125 17.1825 3.7875 16.6125C3.2625 16.0425 3 15.3525 3 14.5425C3 13.7325 3.17625 12.9037 3.52875 12.0562C3.88125 11.2087 4.4775 10.1925 5.3175 9.0075C5.6025 8.6175 5.8125 8.2875 5.9475 8.0175C6.0825 7.7475 6.15 7.53 6.15 7.365C6.15 7.26 6.13125 7.18125 6.09375 7.12875C6.05625 7.07625 6 7.05 5.925 7.05C5.775 7.05 5.5875 7.14375 5.3625 7.33125C5.1375 7.51875 4.875 7.8075 4.575 8.1975L3 6.6C3.48 6.015 3.9675 5.56875 4.4625 5.26125C4.9575 4.95375 5.445 4.8 5.925 4.8C6.615 4.8 7.2 5.04 7.68 5.52C8.16 6 8.4 6.6 8.4 7.32C8.4 7.755 8.2875 8.235 8.0625 8.76C7.8375 9.285 7.4625 9.915 6.9375 10.65C6.3675 11.46 5.94375 12.1725 5.66625 12.7875C5.38875 13.4025 5.25 13.9425 5.25 14.4075C5.25 14.6625 5.29125 14.8613 5.37375 15.0038C5.45625 15.1463 5.5725 15.2175 5.7225 15.2175C5.8725 15.2175 6.00375 15.1762 6.11625 15.0937C6.22875 15.0112 6.435 14.8125 6.735 14.4975C6.93 14.2875 7.1625 14.0288 7.4325 13.7213C7.7025 13.4138 8.0325 13.035 8.4225 12.585C9.3675 11.46 10.2225 10.6575 10.9875 10.1775C11.7525 9.6975 12.555 9.4575 13.395 9.4575C14.4 9.4575 15.225 9.795 15.87 10.47C16.515 11.145 16.8825 12.0675 16.9725 13.2375H19.2V15.4875H16.9725C16.8525 17.1675 16.4137 18.5062 15.6562 19.5037C14.8987 20.5012 13.935 21 12.765 21ZM12.81 18.75C13.29 18.75 13.695 18.4762 14.025 17.9287C14.355 17.3812 14.58 16.62 14.7 15.645C14.01 15.81 13.41 16.1362 12.9 16.6237C12.39 17.1112 12.135 17.595 12.135 18.075C12.135 18.285 12.195 18.45 12.315 18.57C12.435 18.69 12.6 18.75 12.81 18.75ZM16.3875 7.6125C15.8625 7.0875 15.6 6.45 15.6 5.7C15.6 4.95 15.8625 4.3125 16.3875 3.7875C16.9125 3.2625 17.55 3 18.3 3C19.05 3 19.6875 3.2625 20.2125 3.7875C20.7375 4.3125 21 4.95 21 5.7C21 6.45 20.7375 7.0875 20.2125 7.6125C19.6875 8.1375 19.05 8.4 18.3 8.4C17.55 8.4 16.9125 8.1375 16.3875 7.6125Z" fill="currentColor"/></svg>
+        </button>
+        <button type="button" class="btn btn--small" id="reset">
+          <span data-i18n="btn_reset">Resetuj</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M11.0563 20.9938C9.08958 20.7605 7.45833 19.9084 6.1625 18.4376C4.86667 16.9668 4.21875 15.2397 4.21875 13.2563C4.21875 12.1563 4.43958 11.1084 4.88125 10.1126C5.32292 9.11677 5.95208 8.25635 6.76875 7.53135L8.10625 8.86885C7.44792 9.41885 6.94792 10.073 6.60625 10.8313C6.26458 11.5897 6.09375 12.398 6.09375 13.2563C6.09375 14.7147 6.55833 15.998 7.4875 17.1063C8.41667 18.2147 9.60625 18.8855 11.0563 19.1188V20.9938ZM12.9312 20.9938V19.1188C14.3729 18.8688 15.5625 18.1938 16.5 17.0938C17.4375 15.9938 17.9062 14.7147 17.9062 13.2563C17.9062 11.6147 17.3312 10.2188 16.1812 9.06885C15.0312 7.91885 13.6354 7.34385 11.9938 7.34385H11.8688L13.0187 8.49385L11.7062 9.80635L8.30625 6.40635L11.7062 3.00635L13.0187 4.31885L11.8688 5.46885H11.9938C14.1604 5.46885 16 6.2251 17.5125 7.7376C19.025 9.2501 19.7812 11.0897 19.7812 13.2563C19.7812 15.2313 19.1312 16.9543 17.8312 18.4251C16.5312 19.8959 14.8979 20.7522 12.9312 20.9938Z" fill="currentColor"/></svg>
+        </button>
       </div>
     </div>
+
+    </div><!-- /panel-scroll params -->
+
+    <!-- ===== MOBILE TOGGLE ===== -->
     <div class="mobile-view-toggle" id="mobileViewToggle">
       <button type="button" class="mobile-toggle-btn is-active" data-view="grid">Grid</button>
-      <button type="button" class="mobile-toggle-btn" data-view="results">Ustawienie</button>
+      <button type="button" class="mobile-toggle-btn" data-view="results" data-i18n="mobile_results">Ustawienie</button>
     </div>
 
-    <div class="results-panel" id="results"></div>
+    <!-- ===== PANEL USTAWIENIE ===== -->
+    <div class="panel-scroll panel-scroll--results">
+    <div class="panel-results" id="panelResults">
+      <div class="panel-title" data-i18n="results_title">Ustawienie:</div>
 
-    <div class="canvas-container" id="visContainer">
-      <canvas id="gridCanvas"></canvas>
+      <div class="unit-control">
+        <span class="unit-control-label" data-i18n="unit_label">Jednostka:</span>
+        <div class="pill-group" id="outputUnitToggle">
+          <button type="button" class="pill is-active" data-value="pt" data-i18n-content="unit_pt">pkt</button>
+          <button type="button" class="pill" data-value="unit" data-i18n-content="unit_input">mm</button>
+        </div>
+      </div>
+
+      <div class="result-table" id="resultsTable"></div>
+
+      <button type="button" class="btn btn--full" id="downloadSVG">
+        <span data-i18n="btn_download">Pobierz grid</span>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 20C3.45 20 2.97917 19.8042 2.5875 19.4125C2.19583 19.0208 2 18.55 2 18V6C2 5.45 2.19583 4.97917 2.5875 4.5875C2.97917 4.19583 3.45 4 4 4H10L12 6H20C20.55 6 21.0208 6.19583 21.4125 6.5875C21.8042 6.97917 22 7.45 22 8V18C22 18.55 21.8042 19.0208 21.4125 19.4125C21.0208 19.8042 20.55 20 20 20H4ZM14.5 15.5V10.5H15.875L17.5 12.125V15.5H14.5ZM13 17H19V11.5L16.5 9H13V17Z" fill="currentColor"/></svg>
+      </button>
+    </div>
+
+    </div><!-- /panel-scroll results -->
+
+    <!-- ===== PODGLAD ===== -->
+    <div class="panel-preview" id="panelPreview">
+      <div class="preview-header">
+        <div class="preview-title" data-i18n="preview_title">Podgląd:</div>
+        <div class="pill-group" id="langToggle">
+          <button type="button" class="pill is-active" data-value="pl">Pl</button>
+          <button type="button" class="pill" data-value="en">En</button>
+        </div>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="gridCanvas"></canvas>
+      </div>
+
+      <!-- ===== FOOTER ===== -->
+      <div class="app-footer">
+        <a href="https://khorei.com" target="_blank" rel="noopener noreferrer" class="footer-logo">
+          <svg viewBox="0 0 84 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 0.12194H1.06718V2.74414H1.13687L3.95508 0.12194H5.2052V0.252615L2.02546 3.18408L5.29232 6.26365V6.39432H3.97251L1.13687 3.70678H1.06718V6.39432H0V0.12194Z" fill="currentColor"/>
+            <path d="M38.7706 0.12194H39.8422V2.77899H42.8825V0.12194H43.9584V6.39432H42.8825V3.71113H39.8422V6.39432H38.7706V0.12194Z" fill="currentColor"/>
+            <path d="M76.8836 3.25815C76.8836 1.19785 78.1338 0 80.0808 0C82.0322 0 83.2824 1.19785 83.2824 3.25815C83.2824 5.31846 82.0322 6.51631 80.0808 6.51631C78.1338 6.51631 76.8836 5.31846 76.8836 3.25815ZM77.977 3.25815C77.977 4.7522 78.7828 5.6103 80.0808 5.6103C81.3789 5.6103 82.1847 4.7522 82.1847 3.25815C82.1847 1.76411 81.3789 0.90601 80.0808 0.90601C78.7828 0.90601 77.977 1.76411 77.977 3.25815Z" fill="currentColor"/>
+            <path d="M3.14925 15.6093C4.25999 15.6093 5.14422 16.2452 5.14422 17.4213C5.14422 18.5973 4.30354 19.2333 3.27122 19.2333H2.61349L5.14422 21.751V21.8816H3.94201L1.29367 19.2115H1.20656V21.8816H0.148093V15.6093H3.14925ZM1.20656 18.4013H2.98809C3.64146 18.4013 4.10318 18.079 4.10318 17.4518C4.10318 16.8202 3.64146 16.4935 2.98809 16.4935H1.20656V18.4013Z" fill="currentColor"/>
+            <path d="M39.1083 15.6092H43.5599V16.4934H40.1754V18.2749H43.1243V19.1592H40.1754V20.9973H43.6209V21.8815H39.1083V15.6092Z" fill="currentColor"/>
+            <path d="M79.5451 15.6092H80.621V21.8816H79.5451V15.6092Z" fill="currentColor"/>
+            <path d="M0.463893 31.0967H1.53978V36.4413H4.82842V37.3691H0.463893V31.0967Z" fill="currentColor"/>
+            <path d="M40.6763 31.0968H42.0484L44.2655 37.2385V37.3692H43.1853L42.6147 35.7314H40.0883L39.5177 37.3692H38.4636V37.2385L40.6763 31.0968ZM40.3758 34.8254H42.3272L41.3863 32.1291H41.3166L40.3758 34.8254Z" fill="currentColor"/>
+            <path d="M80.4576 31.0967C81.5858 31.0967 82.4352 31.6064 82.4352 32.6692C82.4352 33.6667 81.7861 33.9977 81.429 34.0761V34.1458C81.8297 34.2373 82.5702 34.5553 82.5702 35.6399C82.5702 36.7985 81.6555 37.3691 80.5055 37.3691H77.5958V31.0967H80.4576ZM78.6543 36.4849H80.3618C81.0326 36.4849 81.5161 36.2366 81.5161 35.5571C81.5161 34.8776 81.0326 34.6337 80.3618 34.6337H78.6543V36.4849ZM78.6543 33.7494H80.3095C80.9411 33.7494 81.4115 33.5186 81.4115 32.8652C81.4115 32.2118 80.9411 31.981 80.3095 31.981H78.6543V33.7494Z" fill="currentColor"/>
+          </svg>
+        </a>
+        <span id="appFooter"></span>
+      </div>
     </div>
   </div>
 
   <script>
-    let manualTheme = false;
-
-    // Ostatnia poprawna liczba modułów poziomych (blokada przy granicy 3 wierszy/moduł)
-    let lastValidHModules = 1;
-
-    function computeMaxHModules(availableHeight, fontSizeConverted) {
-      // Maksymalna liczba wierszy przy założeniu, że efektywna interlinia nie spada poniżej 1.0
-      const maxRows = Math.floor(availableHeight / (fontSizeConverted * 1.0));
-      // Minimalnie: 3 wiersze tekstu na moduł + (M-1) przerw po 1 wierszu => nRows >= 4M - 1
-      const maxM = Math.floor((maxRows + 1) / 4);
-      return Math.max(maxM, 1);
-    }
-
-    function updateTheme(theme) {
-      if (theme === 'dark') {
-        document.body.classList.add('dark-mode');
-        document.getElementById('darkModeToggle').checked = true;
-      } else {
-        document.body.classList.remove('dark-mode');
-        document.getElementById('darkModeToggle').checked = false;
+    /* ========================================
+       I18N
+    ======================================== */
+    const i18n = {
+      pl: {
+        params_title: 'Parametry:',
+        unit_label: 'Jednostka:',
+        page_width: 'Szerokość strony:',
+        page_height: 'Wysokość strony:',
+        margin_top: 'Margines górny:',
+        margin_bottom: 'Margines dolny:',
+        margin_left: 'Margines lewy:',
+        margin_right: 'Margines prawy:',
+        font_size: 'Wielkość fontu (pt):',
+        line_height: 'Współczynnik interlinii:',
+        modules: 'Liczba modułów:',
+        columns: 'Liczba kolumn:',
+        gutter: 'Odstęp między kolumnami:',
+        btn_draw: 'Rysuj',
+        btn_reset: 'Resetuj',
+        btn_download: 'Pobierz grid',
+        results_title: 'Ustawienie:',
+        preview_title: 'Podgląd:',
+        mobile_results: 'Ustawienie',
+        unit_pt: 'pkt',
+        unit_input: '', // set dynamically
+        r_baseline_rows: 'Liczba wierszy (baseline):',
+        r_font_size: 'Rozmiar fontu:',
+        r_leading: 'Interlinia:',
+        r_lh_coeff: 'Współczynnik interlinii:',
+        r_h_modules: 'Moduły poziome:',
+        r_rows_per_mod: 'Wiersze tekstu / moduł:',
+        r_baseline_adj: 'Wiersze bazowe (dopasowane):',
+        r_columns: 'Liczba kolumn:',
+        r_col_width: 'Szerokość kolumny:',
+        r_gutter: 'Odstęp między kolumnami:',
+        r_page_w: 'Szerokość strony:',
+        r_page_h: 'Wysokość strony:',
+        r_margin_t: 'Margines górny:',
+        r_margin_b: 'Margines dolny:',
+        r_margin_l: 'Margines lewy:',
+        r_margin_r: 'Margines prawy:',
+        copy: 'Kopiuj',
+        copied: 'Skopiowano!',
+        footer: 'Grid (App)©{year} Radosław Prośniak — KHR(LAB)'
+      },
+      en: {
+        params_title: 'Parameters:',
+        unit_label: 'Unit:',
+        page_width: 'Page width:',
+        page_height: 'Page height:',
+        margin_top: 'Top margin:',
+        margin_bottom: 'Bottom margin:',
+        margin_left: 'Left margin:',
+        margin_right: 'Right margin:',
+        font_size: 'Font size (pt):',
+        line_height: 'Line height coefficient:',
+        modules: 'Module count:',
+        columns: 'Column count:',
+        gutter: 'Column gap:',
+        btn_draw: 'Draw',
+        btn_reset: 'Reset',
+        btn_download: 'Download grid',
+        results_title: 'Settings:',
+        preview_title: 'Preview:',
+        mobile_results: 'Settings',
+        unit_pt: 'pt',
+        unit_input: '',
+        r_baseline_rows: 'Baseline rows:',
+        r_font_size: 'Font size:',
+        r_leading: 'Leading:',
+        r_lh_coeff: 'Line height coefficient:',
+        r_h_modules: 'Horizontal modules:',
+        r_rows_per_mod: 'Text rows / module:',
+        r_baseline_adj: 'Baseline rows (adjusted):',
+        r_columns: 'Column count:',
+        r_col_width: 'Column width:',
+        r_gutter: 'Column gap:',
+        r_page_w: 'Page width:',
+        r_page_h: 'Page height:',
+        r_margin_t: 'Top margin:',
+        r_margin_b: 'Bottom margin:',
+        r_margin_l: 'Left margin:',
+        r_margin_r: 'Right margin:',
+        copy: 'Copy',
+        copied: 'Copied!',
+        footer: 'Grid (App)©{year} Radosław Prośniak — KHR(LAB)'
       }
+    };
+
+    let currentLang = 'pl';
+    let currentUnit = 'mm'; // input unit
+    let currentOutputUnit = 'pt'; // output unit: 'pt' or 'unit' (same as input)
+
+    function t(key) {
+      return (i18n[currentLang] && i18n[currentLang][key]) || key;
     }
 
-    function detectSystemTheme() {
-      if (window.matchMedia) {
-        const mq = window.matchMedia('(prefers-color-scheme: dark)');
-        if (!manualTheme) {
-          updateTheme(mq.matches ? 'dark' : 'light');
-        }
-        if (mq.addEventListener) {
-          mq.addEventListener('change', e => {
-            if (!manualTheme) updateTheme(e.matches ? 'dark' : 'light');
-          });
-        } else if (mq.addListener) {
-          mq.addListener(e => {
-            if (!manualTheme) updateTheme(e.matches ? 'dark' : 'light');
-          });
-        }
-      }
-    }
-
-    window.addEventListener('load', () => {
-      detectSystemTheme();
+    function applyLanguage() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        el.textContent = t(key);
+      });
+      // Update output unit pill labels
+      const ptPill = document.querySelector('#outputUnitToggle [data-value="pt"]');
+      const unitPill = document.querySelector('#outputUnitToggle [data-value="unit"]');
+      if (ptPill) ptPill.textContent = t('unit_pt');
+      if (unitPill) unitPill.textContent = currentUnit;
+      // Footer
+      document.getElementById('appFooter').textContent =
+        t('footer').replace('{year}', new Date().getFullYear());
       recalcAndDraw();
-    });
+    }
 
-    document.getElementById('darkModeToggle').addEventListener('change', function() {
-      manualTheme = true;
-      updateTheme(this.checked ? 'dark' : 'light');
+    /* ========================================
+       PILL TOGGLE LOGIC
+    ======================================== */
+    function initPillGroup(containerId, onChange) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.addEventListener('click', e => {
+        const pill = e.target.closest('.pill');
+        if (!pill) return;
+        container.querySelectorAll('.pill').forEach(p => p.classList.remove('is-active'));
+        pill.classList.add('is-active');
+        onChange(pill.dataset.value);
+      });
+    }
+
+    initPillGroup('unitToggle', val => {
+      currentUnit = val;
+      const unitPill = document.querySelector('#outputUnitToggle [data-value="unit"]');
+      if (unitPill) unitPill.textContent = val;
+      recalcAndDraw();
       saveState();
     });
 
+    initPillGroup('outputUnitToggle', val => {
+      currentOutputUnit = val;
+      recalcAndDraw();
+      saveState();
+    });
+
+    initPillGroup('langToggle', val => {
+      currentLang = val;
+      applyLanguage();
+      saveState();
+    });
+
+    /* ========================================
+       ± CONTROL BUTTONS
+    ======================================== */
+    document.querySelectorAll('.ctrl-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        const dir = parseInt(btn.dataset.dir, 10);
+        const el = document.getElementById(targetId);
+        if (!el) return;
+
+        if (el.dataset.int) {
+          let v = parseInt(el.value, 10) || 0;
+          const min = parseInt(el.dataset.min || '1', 10);
+          v += dir;
+          if (v < min) v = min;
+          el.value = String(v);
+        } else {
+          const min = parseFloat(el.dataset.min ?? '0');
+          const decimals = parseInt(el.dataset.decimals ?? '2', 10);
+          let v = parseFloat(normalizeNumberString(el.value));
+          if (!Number.isFinite(v)) v = min;
+          v = clampMin(v + dir * 0.1, min);
+          el.value = v.toFixed(decimals);
+        }
+
+        recalcAndDraw();
+        saveState();
+      });
+    });
+
+    /* ========================================
+       HELPERS
+    ======================================== */
+    let lastValidHModules = 1;
+
     function normalizeNumberString(s) {
-      return String(s ?? '')
-        .trim()
-        .replace(/\s+/g, '')
-        .replace(',', '.');
+      return String(s ?? '').trim().replace(/\s+/g, '').replace(',', '.');
     }
 
     function readDecimalInput(id, fallback = 0) {
@@ -540,121 +910,83 @@
       return Number.isFinite(v) ? v : fallback;
     }
 
-    function clampMin(v, min) {
-      return v < min ? min : v;
-    }
+    function clampMin(v, min) { return v < min ? min : v; }
 
+    /* ========================================
+       INPUT EVENT HANDLERS
+    ======================================== */
     document.querySelectorAll('.decimal-input').forEach(input => {
       input.addEventListener('blur', function() {
+        const raw = normalizeNumberString(this.value);
+        // Allow empty value for optional fields (e.g. gutter = auto)
+        if (raw === '' && this.placeholder) {
+          this.value = '';
+          recalcAndDraw();
+          saveState();
+          return;
+        }
         const min = parseFloat(this.dataset.min ?? '0');
         const decimals = parseInt(this.dataset.decimals ?? '2', 10);
-
-        const raw = normalizeNumberString(this.value);
         let v = parseFloat(raw);
-
         if (!Number.isFinite(v)) v = min;
         v = clampMin(v, min);
-
         this.value = v.toFixed(decimals);
-
-        if (this.id === 'gutter') this.dataset.auto = '0';
-
         recalcAndDraw();
         saveState();
       });
-    });
 
-    document.querySelectorAll('.decimal-input').forEach(input => {
       input.addEventListener('keydown', function(e) {
         if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-
         e.preventDefault();
-
         const min = parseFloat(this.dataset.min ?? '0');
         const decimals = parseInt(this.dataset.decimals ?? '2', 10);
         const delta = e.shiftKey ? 1.0 : 0.1;
         const dir = (e.key === 'ArrowUp') ? 1 : -1;
-
-        const raw = normalizeNumberString(this.value);
-        let v = parseFloat(raw);
+        let v = parseFloat(normalizeNumberString(this.value));
         if (!Number.isFinite(v)) v = min;
-
         v = clampMin(v + dir * delta, min);
         this.value = v.toFixed(decimals);
-
-        if (this.id === 'gutter') this.dataset.auto = '0';
-
         recalcAndDraw();
         saveState();
       });
     });
 
-    // Strzałki dla pól całkowitych (kolumny): ±1, z Shiftem ±10
-    const columnsEl = document.getElementById('columns');
-    if (columnsEl) {
-      columnsEl.addEventListener('keydown', function(e) {
-        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-
-        e.preventDefault();
-
-        const min = parseInt(this.getAttribute('min') || '1', 10);
-        const step = e.shiftKey ? 10 : 1;
-        const dir = (e.key === 'ArrowUp') ? 1 : -1;
-
-        let v = parseInt(this.value, 10);
-        if (!Number.isFinite(v)) v = 0;
-
-        v = v + dir * step;
-        if (v < min) v = min;
-
-        this.value = String(v);
-        recalcAndDraw();
-        saveState();
-      });
-    }
-
-    // Strzałki dla pól całkowitych (moduły poziome): ±1, z Shiftem ±10
-    const hModulesEl = document.getElementById('hModules');
-    if (hModulesEl) {
-      hModulesEl.addEventListener('keydown', function(e) {
-        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-
-        e.preventDefault();
-
-        const min = parseInt(this.getAttribute('min') || '1', 10);
-        const step = e.shiftKey ? 10 : 1;
-        const dir = (e.key === 'ArrowUp') ? 1 : -1;
-
-        let v = parseInt(this.value, 10);
-        if (!Number.isFinite(v)) v = 0;
-
-        v = v + dir * step;
-        if (v < min) v = min;
-
-        this.value = String(v);
-        recalcAndDraw();
-        saveState();
-      });
-    }
-
-    document.querySelectorAll('input[type="number"]').forEach(input => {
-      input.addEventListener('change', function() {
-        const min = parseFloat(this.getAttribute('min')) || 0;
-        let current = parseFloat(this.value);
-
+    document.querySelectorAll('input[data-int]').forEach(input => {
+      input.addEventListener('blur', function() {
+        const min = parseInt(this.dataset.min || '1', 10);
+        let current = parseInt(this.value, 10);
         if (!Number.isFinite(current) || current < min) {
           current = min;
-          this.value = String(min);
         }
+        this.value = String(current);
+        recalcAndDraw();
+        saveState();
+      });
 
+      input.addEventListener('keydown', function(e) {
+        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+        e.preventDefault();
+        const min = parseInt(this.dataset.min || '1', 10);
+        const step = e.shiftKey ? 10 : 1;
+        const dir = (e.key === 'ArrowUp') ? 1 : -1;
+        let v = parseInt(this.value, 10);
+        if (!Number.isFinite(v)) v = 0;
+        v = v + dir * step;
+        if (v < min) v = min;
+        this.value = String(v);
         recalcAndDraw();
         saveState();
       });
     });
 
+    /* ========================================
+       STATE (localStorage)
+    ======================================== */
     function saveState() {
       const state = {
-        unit: document.getElementById('unit').value,
+        unit: currentUnit,
+        outputUnit: currentOutputUnit,
+        lang: currentLang,
         pageWidth: document.getElementById('pageWidth').value,
         pageHeight: document.getElementById('pageHeight').value,
         marginTop: document.getElementById('marginTop').value,
@@ -664,9 +996,8 @@
         fontSize: document.getElementById('fontSize').value,
         lineHeight: document.getElementById('lineHeight').value,
         columns: document.getElementById('columns').value,
-        hModules: document.getElementById('hModules') ? document.getElementById('hModules').value : '',
-        gutter: document.getElementById('gutter').value,
-        darkMode: document.getElementById('darkModeToggle').checked,
+        hModules: document.getElementById('hModules').value,
+        gutterWidth: document.getElementById('gutterWidth').value,
         mobileView: document.body.dataset.mobileView || 'grid'
       };
       localStorage.setItem('gridApp_state', JSON.stringify(state));
@@ -674,144 +1005,123 @@
 
     function loadState() {
       const saved = localStorage.getItem('gridApp_state');
-      if (saved) {
-        const state = JSON.parse(saved);
-        if (state.unit) document.getElementById('unit').value = state.unit;
-        if (state.pageWidth) document.getElementById('pageWidth').value = state.pageWidth;
-        if (state.pageHeight) document.getElementById('pageHeight').value = state.pageHeight;
-        if (state.marginTop) document.getElementById('marginTop').value = state.marginTop;
-        if (state.marginBottom) document.getElementById('marginBottom').value = state.marginBottom;
-        if (state.marginLeft) document.getElementById('marginLeft').value = state.marginLeft;
-        if (state.marginRight) document.getElementById('marginRight').value = state.marginRight;
-        if (state.fontSize) document.getElementById('fontSize').value = state.fontSize;
-        if (state.lineHeight) document.getElementById('lineHeight').value = state.lineHeight;
-        if (state.columns) {
-          document.getElementById('columns').value = state.columns;
-        } else {
-          document.getElementById('columns').value = '1';
+      if (!saved) return;
+      try {
+        const s = JSON.parse(saved);
+        if (s.unit) {
+          currentUnit = s.unit;
+          document.querySelectorAll('#unitToggle .pill').forEach(p => {
+            p.classList.toggle('is-active', p.dataset.value === currentUnit);
+          });
         }
-
-        if (state.hModules) {
-          document.getElementById('hModules').value = state.hModules;
-          const hv = parseInt(state.hModules, 10);
+        if (s.outputUnit) {
+          currentOutputUnit = s.outputUnit;
+          document.querySelectorAll('#outputUnitToggle .pill').forEach(p => {
+            p.classList.toggle('is-active', p.dataset.value === currentOutputUnit);
+          });
+        }
+        if (s.lang) {
+          currentLang = s.lang;
+          document.querySelectorAll('#langToggle .pill').forEach(p => {
+            p.classList.toggle('is-active', p.dataset.value === currentLang);
+          });
+        }
+        if (s.pageWidth) document.getElementById('pageWidth').value = s.pageWidth;
+        if (s.pageHeight) document.getElementById('pageHeight').value = s.pageHeight;
+        if (s.marginTop) document.getElementById('marginTop').value = s.marginTop;
+        if (s.marginBottom) document.getElementById('marginBottom').value = s.marginBottom;
+        if (s.marginLeft) document.getElementById('marginLeft').value = s.marginLeft;
+        if (s.marginRight) document.getElementById('marginRight').value = s.marginRight;
+        if (s.fontSize) document.getElementById('fontSize').value = s.fontSize;
+        if (s.lineHeight) document.getElementById('lineHeight').value = s.lineHeight;
+        if (s.columns) document.getElementById('columns').value = s.columns;
+        if (s.hModules) {
+          document.getElementById('hModules').value = s.hModules;
+          const hv = parseInt(s.hModules, 10);
           lastValidHModules = Number.isFinite(hv) && hv >= 1 ? hv : 1;
-        } else {
-          document.getElementById('hModules').value = '1';
-          lastValidHModules = 1;
         }
-        if (state.gutter) document.getElementById('gutter').value = state.gutter;
-        if (typeof state.darkMode === 'boolean') {
-          document.getElementById('darkModeToggle').checked = state.darkMode;
-          updateTheme(state.darkMode ? 'dark' : 'light');
-        }
-        if (state.mobileView === 'results' || state.mobileView === 'grid') {
-          document.body.dataset.mobileView = state.mobileView;
-        } else {
-          document.body.dataset.mobileView = 'grid';
-        }
-      }
+        if (s.gutterWidth !== undefined) document.getElementById('gutterWidth').value = s.gutterWidth;
+        if (s.mobileView) document.body.dataset.mobileView = s.mobileView;
+      } catch(e) {}
     }
 
     loadState();
 
-    // Mobile toggle: Grid vs Dane wyjściowe
+    /* ========================================
+       MOBILE TOGGLE
+    ======================================== */
     function setMobileView(view) {
       const v = (view === 'results') ? 'results' : 'grid';
       document.body.dataset.mobileView = v;
-
       const toggle = document.getElementById('mobileViewToggle');
       if (toggle) {
         toggle.querySelectorAll('.mobile-toggle-btn').forEach(btn => {
           btn.classList.toggle('is-active', btn.dataset.view === v);
         });
       }
-
-      // Jeśli wracamy na Grid, przerysuj, bo canvas mógł być schowany i mieć 0 rozmiaru
-      if (v === 'grid') {
-        requestAnimationFrame(() => {
-          recalcAndDraw();
-        });
-      }
-
+      if (v === 'grid') requestAnimationFrame(() => recalcAndDraw());
       saveState();
     }
 
-    (function initMobileViewToggle() {
-      // Domyślnie (jeśli nic nie ustawiono) pokazuj Grid
+    (function initMobileToggle() {
       if (!document.body.dataset.mobileView) document.body.dataset.mobileView = 'grid';
-
       const toggle = document.getElementById('mobileViewToggle');
       if (!toggle) return;
-
-      toggle.addEventListener('click', (e) => {
+      toggle.addEventListener('click', e => {
         const btn = e.target.closest('.mobile-toggle-btn');
-        if (!btn) return;
-        setMobileView(btn.dataset.view);
+        if (btn) setMobileView(btn.dataset.view);
       });
-
-      // Ustaw aktywny stan przy starcie
       setMobileView(document.body.dataset.mobileView);
     })();
 
+    /* ========================================
+       GRID CALCULATION LOGIC
+    ======================================== */
+    function computeMaxHModules(availableHeight, fontSizeConverted) {
+      const maxRows = Math.floor(availableHeight / (fontSizeConverted * 1.0));
+      const maxM = Math.floor((maxRows + 1) / 4);
+      return Math.max(maxM, 1);
+    }
+
     function computeColumns(availableWidth, fontSizeConverted, columnsInput) {
-      let nColumns;
       if (columnsInput !== "") {
-        nColumns = Math.max(parseInt(columnsInput), 1);
-      } else {
-        if (readDecimalInput('fontSize', 8) <= 8) {
-          nColumns = 4;
-        } else {
-          nColumns = Math.floor(availableWidth / (fontSizeConverted * 5));
-          nColumns = Math.max(nColumns, 1);
-        }
-        document.getElementById('columns').value = nColumns;
+        return Math.max(parseInt(columnsInput), 1);
       }
+      let nColumns;
+      if (readDecimalInput('fontSize', 8) <= 8) {
+        nColumns = 4;
+      } else {
+        nColumns = Math.floor(availableWidth / (fontSizeConverted * 5));
+        nColumns = Math.max(nColumns, 1);
+      }
+      document.getElementById('columns').value = nColumns;
       return nColumns;
     }
 
-    // Dopasowanie liczby wierszy (baseline) do modułów poziomych:
-    // - M modułów, (M-1) przerw po 1 wierszu (1 interlinia)
-    // - równa liczba wierszy tekstu w każdym module
-    // - nie schodzimy z efektywną interlinią poniżej 1.0 (poniżej tylko manualnie)
-    // - minimum 3 wiersze tekstu na moduł
     function fitRowsToHorizontalModules(baseRows, modules, availableHeight, fontSizeConverted) {
       const M = Math.max(parseInt(modules, 10) || 1, 1);
-      if (M <= 1) {
-        return { nRows: baseRows, rowsPerModule: baseRows, hasModules: false };
-      }
+      if (M <= 1) return { nRows: baseRows, rowsPerModule: baseRows, hasModules: false };
 
       const minTextRowsPerModule = 3;
       const minRows = (M * minTextRowsPerModule) + (M - 1);
-
-      // Wymagamy: optimalBaselineSpacing >= fontSizeConverted (czyli efektywna interlinia >= 1.0)
       const maxRows = Math.floor(availableHeight / (fontSizeConverted * 1.0));
 
-      if (maxRows < minRows) {
-        return { nRows: baseRows, rowsPerModule: baseRows, hasModules: false };
-      }
+      if (maxRows < minRows) return { nRows: baseRows, rowsPerModule: baseRows, hasModules: false };
 
       const isValid = (rows) => {
-        if (!Number.isFinite(rows)) return false;
-        if (rows < minRows || rows > maxRows) return false;
+        if (!Number.isFinite(rows) || rows < minRows || rows > maxRows) return false;
         const textRows = rows - (M - 1);
-        if (textRows < M * minTextRowsPerModule) return false;
-        return (textRows % M) === 0;
+        return textRows >= M * minTextRowsPerModule && (textRows % M) === 0;
       };
 
       const maxOffset = Math.max(baseRows - minRows, maxRows - baseRows);
       for (let off = 0; off <= maxOffset; off++) {
-        const down = baseRows - off;
-        if (isValid(down)) {
-          const rowsPerModule = (down - (M - 1)) / M;
-          return { nRows: down, rowsPerModule, hasModules: true };
-        }
-        const up = baseRows + off;
-        if (isValid(up)) {
-          const rowsPerModule = (up - (M - 1)) / M;
-          return { nRows: up, rowsPerModule, hasModules: true };
+        for (const candidate of [baseRows - off, baseRows + off]) {
+          if (isValid(candidate)) {
+            return { nRows: candidate, rowsPerModule: (candidate - (M - 1)) / M, hasModules: true };
+          }
         }
       }
-
       return { nRows: baseRows, rowsPerModule: baseRows, hasModules: false };
     }
 
@@ -820,14 +1130,72 @@
       if (M <= 1) return [];
       const gaps = [];
       for (let m = 0; m < M - 1; m++) {
-        const gapRowIndex = (m + 1) * rowsPerModule + m * 1;
-        gaps.push(gapRowIndex);
+        gaps.push((m + 1) * rowsPerModule + m);
       }
       return gaps;
     }
 
+    /* ========================================
+       UPDATE ± BUTTON STATES
+    ======================================== */
+    function updateCtrlBtnStates() {
+      document.querySelectorAll('.ctrl-btn').forEach(btn => {
+        const targetId = btn.dataset.target;
+        const dir = parseInt(btn.dataset.dir, 10);
+        const el = document.getElementById(targetId);
+        if (!el) return;
+
+        let inactive = false;
+        if (el.dataset.int) {
+          const v = parseInt(el.value, 10) || 0;
+          const min = parseInt(el.dataset.min || '1', 10);
+          if (dir === -1 && v <= min) inactive = true;
+          if (dir === 1 && targetId === 'hModules') {
+            const unit = currentUnit;
+            const cf = (unit === 'mm') ? 0.3528 : 1.3333;
+            const fsc = readDecimalInput('fontSize', 8) * cf;
+            const ah = readDecimalInput('pageHeight', 0) - readDecimalInput('marginTop', 0) - readDecimalInput('marginBottom', 0);
+            const maxM = computeMaxHModules(ah, fsc);
+            if (v >= maxM) inactive = true;
+          }
+        } else {
+          const v = parseFloat(normalizeNumberString(el.value));
+          const min = parseFloat(el.dataset.min ?? '0');
+          if (dir === -1 && v <= min + 0.05) inactive = true;
+        }
+
+        btn.classList.toggle('is-inactive', inactive);
+      });
+    }
+
+    /* ========================================
+       COPY TO CLIPBOARD
+    ======================================== */
+    function copyValue(rowEl, value) {
+      navigator.clipboard.writeText(value).then(() => {
+        const tooltip = rowEl.querySelector('.copy-tooltip');
+        if (tooltip) {
+          tooltip.textContent = t('copied');
+          setTimeout(() => {
+            rowEl.classList.add('is-copied');
+            const reset = () => {
+              tooltip.textContent = t('copy');
+              rowEl.classList.remove('is-copied');
+            };
+            const onLeave = () => {
+              rowEl.addEventListener('mouseenter', () => reset(), { once: true });
+            };
+            rowEl.addEventListener('mouseleave', onLeave, { once: true });
+          }, 2000);
+        }
+      });
+    }
+
+    /* ========================================
+       RECALC AND DRAW
+    ======================================== */
     function recalcAndDraw() {
-      const unit = document.getElementById('unit').value;
+      const unit = currentUnit;
       const conversionFactor = (unit === "mm") ? 0.3528 : 1.3333;
 
       const pageWidth = readDecimalInput('pageWidth', 0);
@@ -839,14 +1207,10 @@
       const fixedFontSizePt = readDecimalInput('fontSize', 8);
       const lineHeightMult = readDecimalInput('lineHeight', 1.2);
       const columnsInput = document.getElementById('columns').value;
-      // --- hModules block rewrite
       const hModulesEl = document.getElementById('hModules');
       const hModulesInput = hModulesEl ? String(hModulesEl.value).trim() : "";
 
-      // Liczymy moduły od 1. Jeśli user wpisze zbyt dużą liczbę (granica 3 wiersze/moduł), ignorujemy zmianę.
-      let modulesCount = (hModulesInput !== "")
-        ? Math.max(parseInt(hModulesInput, 10) || 1, 1)
-        : 1;
+      let modulesCount = (hModulesInput !== "") ? Math.max(parseInt(hModulesInput, 10) || 1, 1) : 1;
 
       const fontSizeConverted = fixedFontSizePt * conversionFactor;
       const availableWidthVal = pageWidth - (marginLeft + marginRight);
@@ -854,18 +1218,15 @@
 
       const maxHModules = computeMaxHModules(availableHeight, fontSizeConverted);
       if (hModulesEl && hModulesInput !== "" && modulesCount > maxHModules) {
-        // Blokada: wpisanie większej liczby nie zmienia nic (wracamy do ostatniej poprawnej wartości)
         modulesCount = lastValidHModules;
         hModulesEl.value = String(lastValidHModules);
       }
-      // --- end hModules block rewrite
 
       let nRowsBase = Math.floor(availableHeight / (fontSizeConverted * lineHeightMult));
       if (nRowsBase < 1) nRowsBase = 1;
 
       const fit = fitRowsToHorizontalModules(nRowsBase, modulesCount, availableHeight, fontSizeConverted);
 
-      // Aktualizujemy ostatnią poprawną wartość tylko jeśli user faktycznie używa modułów (pole nie jest puste)
       if (hModulesEl && hModulesInput !== "") {
         lastValidHModules = modulesCount;
       } else {
@@ -874,108 +1235,77 @@
 
       const nRows = fit.nRows;
       const rowsPerModule = fit.hasModules ? fit.rowsPerModule : null;
-
       const optimalBaselineSpacing = availableHeight / nRows;
       const optimalBaselineSpacingPt = optimalBaselineSpacing / conversionFactor;
-
       const gapRowIndices = fit.hasModules ? getHorizontalModuleGapRowIndices(modulesCount, rowsPerModule) : [];
 
-      const gutterEl = document.getElementById('gutter');
-      const shouldAutoGutter =
-        (String(gutterEl.value ?? '').trim() === '') || (gutterEl.dataset.auto === '1');
+      // Gutter: custom value or auto (= baseline spacing)
+      const gutterEl = document.getElementById('gutterWidth');
+      const gutterRaw = gutterEl ? normalizeNumberString(gutterEl.value) : '';
+      const gutterCustom = parseFloat(gutterRaw);
+      const gutterSpacing = (gutterRaw !== '' && Number.isFinite(gutterCustom) && gutterCustom >= 0) ? gutterCustom : optimalBaselineSpacing;
+      if (gutterEl) gutterEl.placeholder = optimalBaselineSpacing.toFixed(2);
 
-      let gutterSpacing = readDecimalInput('gutter', NaN);
-      if (shouldAutoGutter) {
-        gutterSpacing = optimalBaselineSpacing;
-        gutterEl.value = gutterSpacing.toFixed(2);
-        gutterEl.dataset.auto = '1';
-      } else if (!Number.isFinite(gutterSpacing)) {
-        gutterSpacing = optimalBaselineSpacing;
-        gutterEl.value = gutterSpacing.toFixed(2);
-        gutterEl.dataset.auto = '1';
-      }
+      // Real line height coefficient (actual leading / font size in unit)
+      const realLhCoeff = fontSizeConverted > 0 ? optimalBaselineSpacing / fontSizeConverted : lineHeightMult;
 
       let nColumns = computeColumns(availableWidthVal, fontSizeConverted, columnsInput);
-
       const totalGutter = (nColumns - 1) * gutterSpacing;
       const columnWidth = (availableWidthVal - totalGutter) / nColumns;
 
-      const resultsDiv = document.getElementById('results');
-      resultsDiv.innerHTML = `
-        <div class="panel-title">Ustawienie</div>
-        <table>
-          <tbody>
-            <tr>
-              <td>Liczba wierszy (baseline):</td>
-              <td>${nRows}</td>
-            </tr>
-            <tr>
-              <td>Font:</td>
-              <td><span class="nowrap">${fixedFontSizePt.toFixed(2)} pt</span> <span class="nowrap">(${fontSizeConverted.toFixed(2)} ${unit})</span></td>
-            </tr>
-            <tr>
-              <td>Interlinia:</td>
-              <td><span class="nowrap">${optimalBaselineSpacingPt.toFixed(2)} pt</span> <span class="nowrap">(${optimalBaselineSpacing.toFixed(2)} ${unit})</span></td>
-            </tr>
-            <tr>
-              <td>Współczynnik interlinii:</td>
-              <td>${lineHeightMult.toFixed(2)}</td>
-            </tr>
-            <tr>
-              <td>Moduły poziome:</td>
-              <td>${(hModulesInput !== "" ? modulesCount : 1)}</td>
-            </tr>
-            <tr>
-              <td>Wiersze tekstu / moduł:</td>
-              <td>${rowsPerModule !== null ? rowsPerModule : '-'}</td>
-            </tr>
-            <tr>
-              <td>Wiersze bazowe (dopasowane):</td>
-              <td>${nRows}${nRowsBase !== nRows ? ` (z ${nRowsBase})` : ''}</td>
-            </tr>
-            <tr>
-              <td>Liczba kolumn:</td>
-              <td>${nColumns}</td>
-            </tr>
-            <tr>
-              <td>Szerokość kolumny:</td>
-              <td><span class="nowrap">${columnWidth.toFixed(2)} ${unit}</span></td>
-            </tr>
-            <tr>
-              <td>Odstęp między kolumnami:</td>
-              <td><span class="nowrap">${gutterSpacing.toFixed(2)} ${unit}</span></td>
-            </tr>
-            <tr>
-              <td>Rozmiar strony:</td>
-              <td><span class="nowrap">W: ${pageWidth.toFixed(2)} ${unit}</span><br><span class="nowrap">H: ${pageHeight.toFixed(2)} ${unit}</span></td>
-            </tr>
-            <tr>
-  <td>Marginesy pion:</td>
-  <td><span class="nowrap">T: ${marginTop.toFixed(2)} ${unit}</span><br><span class="nowrap">B: ${marginBottom.toFixed(2)} ${unit}</span></td>
-</tr>
-<tr>
-  <td>Marginesy poziom:</td>
-  <td><span class="nowrap">L: ${marginLeft.toFixed(2)} ${unit}</span><br><span class="nowrap">R: ${marginRight.toFixed(2)} ${unit}</span></td>
-</tr>
-          </tbody>
-        </table>
-        <button class="download-button" id="downloadSVG">Pobierz siatkę</button>`;
+      // ===== BUILD RESULTS TABLE =====
+      const ptUnit = t('unit_pt'); // pkt or pt
+      const showInPt = (currentOutputUnit === 'pt');
 
-      document.getElementById('downloadSVG').addEventListener('click', downloadSVG);
+      function fmtVal(valuePt, valueUnit) {
+        if (showInPt) return `${valuePt.toFixed(2)} ${ptUnit}`;
+        return `${valueUnit.toFixed(2)} ${unit}`;
+      }
 
+      const rows = [
+        { key: 'r_baseline_rows', val: String(nRows) },
+        { key: 'r_font_size', val: fmtVal(fixedFontSizePt, fontSizeConverted), copyable: true, copyVal: fmtVal(fixedFontSizePt, fontSizeConverted) },
+        { key: 'r_leading', val: fmtVal(optimalBaselineSpacingPt, optimalBaselineSpacing), copyable: true, copyVal: fmtVal(optimalBaselineSpacingPt, optimalBaselineSpacing) },
+        { key: 'r_lh_coeff', val: realLhCoeff.toFixed(2) },
+        { key: 'r_h_modules', val: String(hModulesInput !== "" ? modulesCount : 1) },
+        { key: 'r_rows_per_mod', val: rowsPerModule !== null ? String(rowsPerModule) : '-' },
+        { key: 'r_baseline_adj', val: nRows + (nRowsBase !== nRows ? ` (${nRowsBase})` : '') },
+        { key: 'r_columns', val: String(nColumns) },
+        { key: 'r_col_width', val: `${columnWidth.toFixed(2)} ${unit}` },
+        { key: 'r_gutter', val: `${gutterSpacing.toFixed(2)} ${unit}` },
+        { key: 'r_page_w', val: `${pageWidth.toFixed(2)} ${unit}` },
+        { key: 'r_page_h', val: `${pageHeight.toFixed(2)} ${unit}` },
+        { key: 'r_margin_t', val: `${marginTop.toFixed(2)} ${unit}` },
+        { key: 'r_margin_b', val: `${marginBottom.toFixed(2)} ${unit}` },
+        { key: 'r_margin_l', val: `${marginLeft.toFixed(2)} ${unit}` },
+        { key: 'r_margin_r', val: `${marginRight.toFixed(2)} ${unit}` },
+      ];
+
+      const tableEl = document.getElementById('resultsTable');
+      tableEl.innerHTML = rows.map(r => {
+        const cls = r.copyable ? ' is-copyable' : '';
+        const tooltip = r.copyable ? `<span class="copy-tooltip">${t('copy')}</span>` : '';
+        return `<div class="result-row${cls}" ${r.copyable ? `data-copy-val="${r.copyVal}"` : ''}>
+          <span>${t(r.key)}</span>
+          <span class="result-value">${r.val}</span>
+          ${tooltip}
+        </div>`;
+      }).join('');
+
+      // Attach copy handlers
+      tableEl.querySelectorAll('.is-copyable').forEach(row => {
+        row.addEventListener('click', () => copyValue(row, row.dataset.copyVal));
+      });
+
+      // ===== DRAW CANVAS =====
       const canvas = document.getElementById('gridCanvas');
       const ctx = canvas.getContext('2d');
-      const container = document.querySelector('.canvas-container');
-      const containerStyle = getComputedStyle(container);
-      const paddingLeft = parseFloat(containerStyle.paddingLeft);
-      const paddingRight = parseFloat(containerStyle.paddingRight);
-      const paddingTop = parseFloat(containerStyle.paddingTop);
-      const paddingBottom = parseFloat(containerStyle.paddingBottom);
-      const contentWidth = container.clientWidth - paddingLeft - paddingRight;
-      const contentHeight = container.clientHeight - paddingTop - paddingBottom;
+      const container = document.querySelector('.canvas-wrap');
+      const contentWidth = container.clientWidth;
+      const contentHeight = container.clientHeight;
 
-      // Skala dopasowana do kontenera, ale nie pozwalamy, żeby rysunek „zniknął”
-      // Minimalny rozmiar rysunku: 120px szerokości i 200px wysokości (z zachowaniem proporcji)
+      if (contentWidth <= 0 || contentHeight <= 0) return;
+
       const fitScale = Math.min(contentWidth / pageWidth, contentHeight / pageHeight);
       const minScale = Math.max(120 / pageWidth, 200 / pageHeight);
       const scale = Math.max(fitScale, minScale);
@@ -998,9 +1328,8 @@
       ctx.lineWidth = 1 / scale;
       ctx.strokeRect(marginLeft, marginTop, availableWidthVal, availableHeight);
 
-      // Moduły poziome: wypełnienie przerw (1 wiersz = 1 interlinia) – #113BB7
       if (gapRowIndices.length > 0) {
-        ctx.fillStyle = 'rgba(17,59,183,0.2)'; // #113BB7
+        ctx.fillStyle = 'rgba(17,59,183,0.2)';
         for (const rowIdx of gapRowIndices) {
           const yGap = marginTop + rowIdx * optimalBaselineSpacing;
           ctx.fillRect(marginLeft, yGap, availableWidthVal, optimalBaselineSpacing);
@@ -1030,7 +1359,6 @@
         if (i === 0) x = marginLeft;
         else if (i === nColumns) x = marginLeft + availableWidthVal;
         else x = marginLeft + i * columnWidth + (i - 1) * gutterSpacing;
-
         ctx.beginPath();
         ctx.moveTo(x, marginTop);
         ctx.lineTo(x, marginTop + availableHeight);
@@ -1038,11 +1366,15 @@
       }
 
       ctx.restore();
+      updateCtrlBtnStates();
       saveState();
     }
 
+    /* ========================================
+       DOWNLOAD SVG
+    ======================================== */
     function downloadSVG() {
-      const unit = document.getElementById('unit').value;
+      const unit = currentUnit;
       const conversionFactor = (unit === "mm") ? 0.3528 : 1.3333;
 
       const pageWidth = readDecimalInput('pageWidth', 0);
@@ -1055,7 +1387,6 @@
       const lineHeightMult = readDecimalInput('lineHeight', 1.2);
       const columnsInput = document.getElementById('columns').value;
       const hModulesInput = document.getElementById('hModules') ? document.getElementById('hModules').value : "";
-      let gutterSpacing = readDecimalInput('gutter', NaN);
 
       const fontSizeConverted = fixedFontSizePt * conversionFactor;
       const availableWidth = pageWidth - (marginLeft + marginRight);
@@ -1066,57 +1397,44 @@
 
       const modulesCount = (hModulesInput !== "") ? Math.max(parseInt(hModulesInput), 1) : 1;
       const fit = fitRowsToHorizontalModules(nRowsBase, modulesCount, availableHeight, fontSizeConverted);
-
       const nRows = fit.nRows;
       const rowsPerModule = fit.hasModules ? fit.rowsPerModule : null;
-
       const optimalBaselineSpacing = availableHeight / nRows;
       const gapRowIndices = fit.hasModules ? getHorizontalModuleGapRowIndices(modulesCount, rowsPerModule) : [];
-
-      const gutterEl = document.getElementById('gutter');
-      const shouldAutoGutter =
-        (String(gutterEl.value ?? '').trim() === '') || (gutterEl.dataset.auto === '1');
-
-      if (shouldAutoGutter || !Number.isFinite(gutterSpacing)) {
-        gutterSpacing = optimalBaselineSpacing;
-      }
+      const gutterElSvg = document.getElementById('gutterWidth');
+      const gutterRawSvg = gutterElSvg ? normalizeNumberString(gutterElSvg.value) : '';
+      const gutterCustomSvg = parseFloat(gutterRawSvg);
+      const gutterSpacing = (gutterRawSvg !== '' && Number.isFinite(gutterCustomSvg) && gutterCustomSvg >= 0) ? gutterCustomSvg : optimalBaselineSpacing;
 
       let nColumns;
       if (columnsInput !== "") {
         nColumns = Math.max(parseInt(columnsInput), 1);
       } else {
-        if (fixedFontSizePt <= 8) nColumns = 4;
-        else {
-          nColumns = Math.floor(availableWidth / (fontSizeConverted * 5));
-          nColumns = Math.max(nColumns, 1);
-        }
+        nColumns = fixedFontSizePt <= 8 ? 4 : Math.max(Math.floor(availableWidth / (fontSizeConverted * 5)), 1);
       }
 
       const totalGutter = (nColumns - 1) * gutterSpacing;
       const columnWidth = (availableWidth - totalGutter) / nColumns;
 
-      let svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="${pageWidth}${unit}" height="${pageHeight}${unit}" viewBox="0 0 ${pageWidth} ${pageHeight}">`;
+      let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${pageWidth}${unit}" height="${pageHeight}${unit}" viewBox="0 0 ${pageWidth} ${pageHeight}">`;
+      svg += `<rect x="0" y="0" width="${pageWidth}" height="${pageHeight}" fill="none" stroke="#000" stroke-width="0.25"/>`;
+      svg += `<rect x="${marginLeft}" y="${marginTop}" width="${availableWidth}" height="${availableHeight}" fill="none" stroke="#aaa" stroke-width="0.25"/>`;
 
-      svgContent += `<rect x="0" y="0" width="${pageWidth}" height="${pageHeight}" fill="none" stroke="#000" stroke-width="0.25"/>`;
-
-      svgContent += `<rect x="${marginLeft}" y="${marginTop}" width="${availableWidth}" height="${availableHeight}" fill="none" stroke="#aaa" stroke-width="0.25"/>`;
-
-      // Moduły poziome: wypełnienie przerw (#113BB7)
       if (gapRowIndices.length > 0) {
         for (const rowIdx of gapRowIndices) {
           const yGap = marginTop + rowIdx * optimalBaselineSpacing;
-          svgContent += `<rect x="${marginLeft}" y="${yGap}" width="${availableWidth}" height="${optimalBaselineSpacing}" fill="#113BB7" fill-opacity="0.2"/>`;
+          svg += `<rect x="${marginLeft}" y="${yGap}" width="${availableWidth}" height="${optimalBaselineSpacing}" fill="#113BB7" fill-opacity="0.2"/>`;
         }
       }
 
       for (let i = 0; i <= nRows; i++) {
         const y = marginTop + i * optimalBaselineSpacing;
-        svgContent += `<line x1="${marginLeft}" y1="${y}" x2="${marginLeft + availableWidth}" y2="${y}" stroke="#DE4343" stroke-width="0.25"/>`;
+        svg += `<line x1="${marginLeft}" y1="${y}" x2="${marginLeft + availableWidth}" y2="${y}" stroke="#DE4343" stroke-width="0.25"/>`;
       }
 
       for (let i = 1; i < nColumns; i++) {
         const gutterLeft = marginLeft + i * columnWidth + (i - 1) * gutterSpacing;
-        svgContent += `<rect x="${gutterLeft}" y="${marginTop}" width="${gutterSpacing}" height="${availableHeight}" fill="#DE4343" fill-opacity="0.2"/>`;
+        svg += `<rect x="${gutterLeft}" y="${marginTop}" width="${gutterSpacing}" height="${availableHeight}" fill="#DE4343" fill-opacity="0.2"/>`;
       }
 
       for (let i = 0; i <= nColumns; i++) {
@@ -1124,15 +1442,13 @@
         if (i === 0) x = marginLeft;
         else if (i === nColumns) x = marginLeft + availableWidth;
         else x = marginLeft + i * columnWidth + (i - 1) * gutterSpacing;
-
-        svgContent += `<line x1="${x}" y1="${marginTop}" x2="${x}" y2="${marginTop + availableHeight}" stroke="#DE4343" stroke-width="1"/>`;
+        svg += `<line x1="${x}" y1="${marginTop}" x2="${x}" y2="${marginTop + availableHeight}" stroke="#DE4343" stroke-width="0.25"/>`;
       }
 
-      svgContent += `</svg>`;
+      svg += `</svg>`;
 
-      const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+      const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(blob);
-
       const a = document.createElement('a');
       a.href = url;
       a.download = 'siatka.svg';
@@ -1142,22 +1458,17 @@
       URL.revokeObjectURL(url);
     }
 
-    document.getElementById('recalc').addEventListener('click', () => {
-      recalcAndDraw();
-      saveState();
-    });
-
-    document.querySelectorAll('.controls input, .controls select')
-      .forEach(el => el.addEventListener('change', () => {
-        recalcAndDraw();
-        saveState();
-      }));
-
-    window.addEventListener('load', recalcAndDraw);
-    window.addEventListener('resize', recalcAndDraw);
+    /* ========================================
+       EVENT BINDINGS
+    ======================================== */
+    document.getElementById('recalc').addEventListener('click', () => { recalcAndDraw(); saveState(); });
+    document.getElementById('downloadSVG').addEventListener('click', downloadSVG);
 
     document.getElementById('reset').addEventListener('click', () => {
-      document.getElementById('unit').value = 'mm';
+      currentUnit = 'mm';
+      document.querySelectorAll('#unitToggle .pill').forEach(p => {
+        p.classList.toggle('is-active', p.dataset.value === 'mm');
+      });
       document.getElementById('pageWidth').value = '210.00';
       document.getElementById('pageHeight').value = '297.00';
       document.getElementById('marginTop').value = '5.00';
@@ -1167,13 +1478,18 @@
       document.getElementById('fontSize').value = '8.00';
       document.getElementById('lineHeight').value = '1.20';
       document.getElementById('columns').value = '1';
-      if (document.getElementById('hModules')) document.getElementById('hModules').value = '1';
+      document.getElementById('hModules').value = '1';
+      document.getElementById('gutterWidth').value = '';
       lastValidHModules = 1;
-      document.getElementById('gutter').value = '';
-      document.getElementById('gutter').dataset.auto = '1';
       recalcAndDraw();
       saveState();
     });
+
+    /* ========================================
+       INIT
+    ======================================== */
+    window.addEventListener('load', () => { applyLanguage(); recalcAndDraw(); });
+    window.addEventListener('resize', recalcAndDraw);
   </script>
 </body>
 </html>
