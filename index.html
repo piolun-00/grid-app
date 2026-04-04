@@ -653,10 +653,10 @@
         scroll-snap-type: x mandatory;
         scroll-behavior: smooth;
         gap: 16px;
-        padding: 0 16px;
         scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
         margin-top: 8px;
+        scroll-padding-left: 16px;
       }
       .panels-wrapper::-webkit-scrollbar { display: none; }
       .panel-scroll {
@@ -665,6 +665,12 @@
         scroll-snap-align: start;
         overflow: visible;
         order: unset;
+      }
+      .panel-scroll:first-child {
+        margin-left: 16px;
+      }
+      .panel-scroll:last-child {
+        margin-right: 16px;
       }
       .panel-params, .panel-results {
         margin: 0;
