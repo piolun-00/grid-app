@@ -718,6 +718,18 @@
         </div>
       </div>
 
+      <div class="unit-control">
+        <span class="unit-control-label" data-i18n="facing_label">Str. Widz:</span>
+        <div class="pill-group" id="facingToggle">
+          <button type="button" class="pill is-active" data-value="single">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 14H9V16H12H15V14H12Z" fill="currentColor"/><path d="M12 8H9V10H12H15V8H12Z" fill="currentColor"/><path d="M12 11H9V13H12H15V11H12Z" fill="currentColor"/><path d="M12 4H7C6.45 4 5.97917 4.19583 5.5875 4.5875C5.19583 4.97917 5 5.45 5 6V18C5 18.55 5.19583 19.0208 5.5875 19.4125C5.97917 19.8042 6.45 20 7 20H12H17C17.55 20 18.0208 19.8042 18.4125 19.4125C18.8042 19.0208 19 18.55 19 18V6C19 5.45 18.8042 4.97917 18.4125 4.5875C18.0208 4.19583 17.55 4 17 4H12ZM7 6H12H17V18H12H7V6Z" fill="currentColor"/></svg>
+          </button>
+          <button type="button" class="pill" data-value="spread">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 20C3.45 20 2.97917 19.8042 2.5875 19.4125C2.19583 19.0208 2 18.55 2 18V6C2 5.45 2.19583 4.97917 2.5875 4.5875C2.97917 4.19583 3.45 4 4 4H20C20.55 4 21.0208 4.19583 21.4125 4.5875C21.8042 4.97917 22 5.45 22 6V18C22 18.55 21.8042 19.0208 21.4125 19.4125C21.0208 19.8042 20.55 20 20 20H4ZM4 18H11V6H4V18ZM13 18H20V6H13V18ZM5 16H10V14H5V16ZM5 13H10V11H5V13ZM5 10H10V8H5V10ZM14 16H19V14H14V16ZM14 13H19V11H14V13ZM14 10H19V8H14V10Z" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </div>
+
       <div class="form-fields-grid">
         <div class="form-group">
           <label class="form-label" data-i18n="page_width">Szerokość strony:</label>
@@ -916,8 +928,11 @@
         page_height: 'Wysokość strony:',
         margin_top: 'Margines górny:',
         margin_bottom: 'Margines dolny:',
+        facing_label: 'Str. Widz:',
         margin_left: 'Margines lewy:',
         margin_right: 'Margines prawy:',
+        margin_inner: 'Margines wewnętrzny:',
+        margin_outer: 'Margines zewnętrzny:',
         font_size: 'Wielkość fontu (pt):',
         line_height: 'Współczynnik interlinii:',
         modules: 'Liczba modułów:',
@@ -948,6 +963,8 @@
         r_margin_b: 'Margines dolny:',
         r_margin_l: 'Margines lewy:',
         r_margin_r: 'Margines prawy:',
+        r_margin_inner: 'Margines wewnętrzny:',
+        r_margin_outer: 'Margines zewnętrzny:',
         copy: 'Kopiuj',
         copied: 'Skopiowano!',
         footer: 'grid.app ©{year} Radosław Prośniak — KHR(LAB)'
@@ -959,8 +976,11 @@
         page_height: 'Page height:',
         margin_top: 'Top margin:',
         margin_bottom: 'Bottom margin:',
+        facing_label: 'Facing:',
         margin_left: 'Left margin:',
         margin_right: 'Right margin:',
+        margin_inner: 'Inner margin:',
+        margin_outer: 'Outer margin:',
         font_size: 'Font size (pt):',
         line_height: 'Line height coefficient:',
         modules: 'Module count:',
@@ -991,6 +1011,8 @@
         r_margin_b: 'Bottom margin:',
         r_margin_l: 'Left margin:',
         r_margin_r: 'Right margin:',
+        r_margin_inner: 'Inner margin:',
+        r_margin_outer: 'Outer margin:',
         copy: 'Copy',
         copied: 'Copied!',
         footer: 'grid.app ©{year} Radosław Prośniak — KHR(LAB)'
@@ -1000,6 +1022,7 @@
     let currentLang = 'pl';
     let currentUnit = 'mm'; // input unit
     let currentOutputUnit = 'pt'; // output unit: 'pt' or 'unit' (same as input)
+    let facingPages = false; // single page or spread
 
     function t(key) {
       return (i18n[currentLang] && i18n[currentLang][key]) || key;
@@ -1020,7 +1043,15 @@
       document.getElementById('appFooter').textContent = footerText;
       const respFooter = document.getElementById('appFooterResponsive');
       if (respFooter) respFooter.textContent = footerText;
+      updateMarginLabels();
       recalcAndDraw();
+    }
+
+    function updateMarginLabels() {
+      const leftLabel = document.querySelector('[data-i18n="margin_left"]');
+      const rightLabel = document.querySelector('[data-i18n="margin_right"]');
+      if (leftLabel) leftLabel.textContent = facingPages ? t('margin_inner') : t('margin_left');
+      if (rightLabel) rightLabel.textContent = facingPages ? t('margin_outer') : t('margin_right');
     }
 
     /* ========================================
@@ -1048,6 +1079,13 @@
 
     initPillGroup('outputUnitToggle', val => {
       currentOutputUnit = val;
+      recalcAndDraw();
+      saveState();
+    });
+
+    initPillGroup('facingToggle', val => {
+      facingPages = (val === 'spread');
+      updateMarginLabels();
       recalcAndDraw();
       saveState();
     });
@@ -1217,6 +1255,7 @@
         columns: document.getElementById('columns').value,
         hModules: document.getElementById('hModules').value,
         gutterWidth: document.getElementById('gutterWidth').value,
+        facingPages: facingPages,
         mobilePanel: 'params'
       };
       localStorage.setItem('gridApp_state', JSON.stringify(state));
@@ -1258,6 +1297,12 @@
           lastValidHModules = Number.isFinite(hv) && hv >= 1 ? hv : 1;
         }
         if (s.gutterWidth !== undefined) document.getElementById('gutterWidth').value = s.gutterWidth;
+        if (s.facingPages !== undefined) {
+          facingPages = s.facingPages;
+          document.querySelectorAll('#facingToggle .pill').forEach(p => {
+            p.classList.toggle('is-active', p.dataset.value === (facingPages ? 'spread' : 'single'));
+          });
+        }
         // mobilePanel state handled by scroll position
       } catch(e) {}
     }
@@ -1513,8 +1558,8 @@
         { key: 'r_page_h', val: `${pageHeight.toFixed(2)} ${unit}` },
         { key: 'r_margin_t', val: `${marginTop.toFixed(2)} ${unit}` },
         { key: 'r_margin_b', val: `${marginBottom.toFixed(2)} ${unit}` },
-        { key: 'r_margin_l', val: `${marginLeft.toFixed(2)} ${unit}` },
-        { key: 'r_margin_r', val: `${marginRight.toFixed(2)} ${unit}` },
+        { key: facingPages ? 'r_margin_inner' : 'r_margin_l', val: `${marginLeft.toFixed(2)} ${unit}` },
+        { key: facingPages ? 'r_margin_outer' : 'r_margin_r', val: `${marginRight.toFixed(2)} ${unit}` },
       ];
 
       const tableEl = document.getElementById('resultsTable');
@@ -1542,63 +1587,91 @@
 
       if (contentWidth <= 0 || contentHeight <= 0) return;
 
-      const fitScale = Math.min(contentWidth / pageWidth, contentHeight / pageHeight);
-      const minScale = Math.max(120 / pageWidth, 200 / pageHeight);
+      // Helper: draw one page's grid at offset xOff with given left/right margins
+      function drawPageGrid(ctx, scale, xOff, pw, ph, mLeft, mRight, mTop, mBottom) {
+        const aw = pw - (mLeft + mRight);
+        const ah = ph - (mTop + mBottom);
+
+        // Page background
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(xOff, 0, pw, ph);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1 / scale;
+        ctx.strokeRect(xOff, 0, pw, ph);
+
+        // Margin area
+        ctx.strokeStyle = '#aaa';
+        ctx.lineWidth = 1 / scale;
+        ctx.strokeRect(xOff + mLeft, mTop, aw, ah);
+
+        // Module gap rows
+        if (gapRowIndices.length > 0) {
+          ctx.fillStyle = 'rgba(17,59,183,0.2)';
+          for (const rowIdx of gapRowIndices) {
+            const yGap = mTop + rowIdx * optimalBaselineSpacing;
+            ctx.fillRect(xOff + mLeft, yGap, aw, optimalBaselineSpacing);
+          }
+        }
+
+        // Baseline rows
+        ctx.strokeStyle = '#DE4343';
+        ctx.lineWidth = 1 / scale;
+        for (let i = 0; i <= nRows; i++) {
+          const y = mTop + i * optimalBaselineSpacing;
+          ctx.beginPath();
+          ctx.moveTo(xOff + mLeft, y);
+          ctx.lineTo(xOff + mLeft + aw, y);
+          ctx.stroke();
+        }
+
+        // Gutter fills
+        ctx.fillStyle = 'rgba(222,67,67,0.2)';
+        for (let i = 1; i < nColumns; i++) {
+          const gutterLeft = xOff + mLeft + i * columnWidth + (i - 1) * gutterSpacing;
+          ctx.fillRect(gutterLeft, mTop, gutterSpacing, ah);
+        }
+
+        // Column lines
+        ctx.strokeStyle = '#DE4343';
+        ctx.lineWidth = 1 / scale;
+        for (let i = 0; i <= nColumns; i++) {
+          let x;
+          if (i === 0) x = xOff + mLeft;
+          else if (i === nColumns) x = xOff + mLeft + aw;
+          else x = xOff + mLeft + i * columnWidth + (i - 1) * gutterSpacing;
+          ctx.beginPath();
+          ctx.moveTo(x, mTop);
+          ctx.lineTo(x, mTop + ah);
+          ctx.stroke();
+        }
+      }
+
+      const totalWidth = facingPages ? pageWidth * 2 : pageWidth;
+      const fitScale = Math.min(contentWidth / totalWidth, contentHeight / pageHeight);
+      const minScale = Math.max(120 / totalWidth, 200 / pageHeight);
       const scale = Math.max(fitScale, minScale);
 
-      canvas.width = Math.max(1, Math.round(pageWidth * scale));
+      canvas.width = Math.max(1, Math.round(totalWidth * scale));
       canvas.height = Math.max(1, Math.round(pageHeight * scale));
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       ctx.save();
       ctx.scale(scale, scale);
 
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0, 0, pageWidth, pageHeight);
-
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 1 / scale;
-      ctx.strokeRect(0, 0, pageWidth, pageHeight);
-
-      ctx.strokeStyle = '#aaa';
-      ctx.lineWidth = 1 / scale;
-      ctx.strokeRect(marginLeft, marginTop, availableWidthVal, availableHeight);
-
-      if (gapRowIndices.length > 0) {
-        ctx.fillStyle = 'rgba(17,59,183,0.2)';
-        for (const rowIdx of gapRowIndices) {
-          const yGap = marginTop + rowIdx * optimalBaselineSpacing;
-          ctx.fillRect(marginLeft, yGap, availableWidthVal, optimalBaselineSpacing);
-        }
-      }
-
-      ctx.strokeStyle = '#DE4343';
-      ctx.lineWidth = 1 / scale;
-      for (let i = 0; i <= nRows; i++) {
-        const y = marginTop + i * optimalBaselineSpacing;
+      if (facingPages) {
+        // Left page: outer=marginRight, inner=marginLeft
+        drawPageGrid(ctx, scale, 0, pageWidth, pageHeight, marginRight, marginLeft, marginTop, marginBottom);
+        // Right page: inner=marginLeft, outer=marginRight
+        drawPageGrid(ctx, scale, pageWidth, pageWidth, pageHeight, marginLeft, marginRight, marginTop, marginBottom);
+        // Spine line
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1.5 / scale;
         ctx.beginPath();
-        ctx.moveTo(marginLeft, y);
-        ctx.lineTo(marginLeft + availableWidthVal, y);
+        ctx.moveTo(pageWidth, 0);
+        ctx.lineTo(pageWidth, pageHeight);
         ctx.stroke();
-      }
-
-      ctx.fillStyle = 'rgba(222,67,67,0.2)';
-      for (let i = 1; i < nColumns; i++) {
-        const gutterLeft = marginLeft + i * columnWidth + (i - 1) * gutterSpacing;
-        ctx.fillRect(gutterLeft, marginTop, gutterSpacing, availableHeight);
-      }
-
-      ctx.strokeStyle = '#DE4343';
-      ctx.lineWidth = 1 / scale;
-      for (let i = 0; i <= nColumns; i++) {
-        let x;
-        if (i === 0) x = marginLeft;
-        else if (i === nColumns) x = marginLeft + availableWidthVal;
-        else x = marginLeft + i * columnWidth + (i - 1) * gutterSpacing;
-        ctx.beginPath();
-        ctx.moveTo(x, marginTop);
-        ctx.lineTo(x, marginTop + availableHeight);
-        ctx.stroke();
+      } else {
+        drawPageGrid(ctx, scale, 0, pageWidth, pageHeight, marginLeft, marginRight, marginTop, marginBottom);
       }
 
       ctx.restore();
@@ -1652,33 +1725,50 @@
       const totalGutter = (nColumns - 1) * gutterSpacing;
       const columnWidth = (availableWidth - totalGutter) / nColumns;
 
-      let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${pageWidth}${unit}" height="${pageHeight}${unit}" viewBox="0 0 ${pageWidth} ${pageHeight}">`;
-      svg += `<rect x="0" y="0" width="${pageWidth}" height="${pageHeight}" fill="none" stroke="#000" stroke-width="0.25"/>`;
-      svg += `<rect x="${marginLeft}" y="${marginTop}" width="${availableWidth}" height="${availableHeight}" fill="none" stroke="#aaa" stroke-width="0.25"/>`;
+      // Helper: generate SVG elements for one page at xOffset
+      function svgPageGrid(xOff, pw, ph, mLeft, mRight, mTop, mBottom) {
+        const aw = pw - (mLeft + mRight);
+        const ah = ph - (mTop + mBottom);
+        let s = '';
+        s += `<rect x="${xOff}" y="0" width="${pw}" height="${ph}" fill="none" stroke="#000" stroke-width="0.25"/>`;
+        s += `<rect x="${xOff + mLeft}" y="${mTop}" width="${aw}" height="${ah}" fill="none" stroke="#aaa" stroke-width="0.25"/>`;
 
-      if (gapRowIndices.length > 0) {
-        for (const rowIdx of gapRowIndices) {
-          const yGap = marginTop + rowIdx * optimalBaselineSpacing;
-          svg += `<rect x="${marginLeft}" y="${yGap}" width="${availableWidth}" height="${optimalBaselineSpacing}" fill="#113BB7" fill-opacity="0.2"/>`;
+        if (gapRowIndices.length > 0) {
+          for (const rowIdx of gapRowIndices) {
+            const yGap = mTop + rowIdx * optimalBaselineSpacing;
+            s += `<rect x="${xOff + mLeft}" y="${yGap}" width="${aw}" height="${optimalBaselineSpacing}" fill="#113BB7" fill-opacity="0.2"/>`;
+          }
         }
+
+        for (let i = 0; i <= nRows; i++) {
+          const y = mTop + i * optimalBaselineSpacing;
+          s += `<line x1="${xOff + mLeft}" y1="${y}" x2="${xOff + mLeft + aw}" y2="${y}" stroke="#DE4343" stroke-width="0.25"/>`;
+        }
+
+        for (let i = 1; i < nColumns; i++) {
+          const gutterLeft = xOff + mLeft + i * columnWidth + (i - 1) * gutterSpacing;
+          s += `<rect x="${gutterLeft}" y="${mTop}" width="${gutterSpacing}" height="${ah}" fill="#DE4343" fill-opacity="0.2"/>`;
+        }
+
+        for (let i = 0; i <= nColumns; i++) {
+          let x;
+          if (i === 0) x = xOff + mLeft;
+          else if (i === nColumns) x = xOff + mLeft + aw;
+          else x = xOff + mLeft + i * columnWidth + (i - 1) * gutterSpacing;
+          s += `<line x1="${x}" y1="${mTop}" x2="${x}" y2="${mTop + ah}" stroke="#DE4343" stroke-width="0.25"/>`;
+        }
+        return s;
       }
 
-      for (let i = 0; i <= nRows; i++) {
-        const y = marginTop + i * optimalBaselineSpacing;
-        svg += `<line x1="${marginLeft}" y1="${y}" x2="${marginLeft + availableWidth}" y2="${y}" stroke="#DE4343" stroke-width="0.25"/>`;
-      }
+      const totalW = facingPages ? pageWidth * 2 : pageWidth;
+      let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}${unit}" height="${pageHeight}${unit}" viewBox="0 0 ${totalW} ${pageHeight}">`;
 
-      for (let i = 1; i < nColumns; i++) {
-        const gutterLeft = marginLeft + i * columnWidth + (i - 1) * gutterSpacing;
-        svg += `<rect x="${gutterLeft}" y="${marginTop}" width="${gutterSpacing}" height="${availableHeight}" fill="#DE4343" fill-opacity="0.2"/>`;
-      }
-
-      for (let i = 0; i <= nColumns; i++) {
-        let x;
-        if (i === 0) x = marginLeft;
-        else if (i === nColumns) x = marginLeft + availableWidth;
-        else x = marginLeft + i * columnWidth + (i - 1) * gutterSpacing;
-        svg += `<line x1="${x}" y1="${marginTop}" x2="${x}" y2="${marginTop + availableHeight}" stroke="#DE4343" stroke-width="0.25"/>`;
+      if (facingPages) {
+        svg += svgPageGrid(0, pageWidth, pageHeight, marginRight, marginLeft, marginTop, marginBottom);
+        svg += svgPageGrid(pageWidth, pageWidth, pageHeight, marginLeft, marginRight, marginTop, marginBottom);
+        svg += `<line x1="${pageWidth}" y1="0" x2="${pageWidth}" y2="${pageHeight}" stroke="#000" stroke-width="0.5"/>`;
+      } else {
+        svg += svgPageGrid(0, pageWidth, pageHeight, marginLeft, marginRight, marginTop, marginBottom);
       }
 
       svg += `</svg>`;
@@ -1687,7 +1777,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'siatka.svg';
+      a.download = facingPages ? 'siatka-rozkladowka.svg' : 'siatka.svg';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -1716,6 +1806,11 @@
       document.getElementById('columns').value = '1';
       document.getElementById('hModules').value = '1';
       document.getElementById('gutterWidth').value = '';
+      facingPages = false;
+      document.querySelectorAll('#facingToggle .pill').forEach(p => {
+        p.classList.toggle('is-active', p.dataset.value === 'single');
+      });
+      updateMarginLabels();
       lastValidHModules = 1;
       recalcAndDraw();
       saveState();
