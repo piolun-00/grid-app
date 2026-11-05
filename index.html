@@ -123,6 +123,32 @@
       font-size: var(--font-body);
     }
 
+    /* ===== PASEK NOWEJ WERSJI ===== */
+    .banner {
+      display: flex;
+      align-items: center;
+      gap: var(--gap-md);
+      min-height: 44px;
+      padding: var(--pad-v-xl) var(--layout-md);
+      background: var(--accent);
+      color: var(--accent-text);
+      font-size: var(--font-small);
+    }
+    .banner[hidden] { display: none; }
+    .banner-btn {
+      margin-left: auto;
+      background: var(--accent-text);
+      border-color: var(--accent-text);
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    body.has-banner .app { height: calc(100svh - var(--banner-h, 44px)); }
+    /* Poniżej 1024 px .app ma height:auto i min-height:100svh — pasek odejmujemy od minimum,
+       inaczej doklejałby się do pełnej wysokości i strona dostawałaby zbędne przewijanie. */
+    @media (max-width: 1024px) {
+      body.has-banner .app { height: auto; min-height: calc(100svh - var(--banner-h, 44px)); }
+    }
+
     /* ===== LAYOUT ===== */
     .app {
       display: flex;
@@ -714,6 +740,10 @@
   </style>
 </head>
 <body>
+  <div class="banner" id="updateBanner" hidden>
+    <span data-i18n="update_text">Jest nowa wersja grid.app. Odśwież stronę, żeby ją wczytać.</span>
+    <button type="button" class="btn banner-btn" id="updateReload" data-i18n="update_btn">Odśwież</button>
+  </div>
   <div class="app">
     <!-- ===== HEADER (tablet/mobile) ===== -->
     <header class="app-header">
@@ -1001,6 +1031,8 @@
         r_margin_outer: 'Margines zewnętrzny:',
         copy: 'Kopiuj',
         copied: 'Skopiowano!',
+        update_text: 'Jest nowa wersja grid.app. Odśwież stronę, żeby ją wczytać.',
+        update_btn: 'Odśwież',
         footer: 'grid.app ©{year} Radosław Prośniak — KHR(LAB)'
       },
       en: {
@@ -1049,6 +1081,8 @@
         r_margin_outer: 'Outer margin:',
         copy: 'Copy',
         copied: 'Copied!',
+        update_text: 'A new version of grid.app is available. Reload the page to load it.',
+        update_btn: 'Reload',
         footer: 'grid.app ©{year} Radosław Prośniak — KHR(LAB)'
       }
     };
@@ -1836,6 +1870,45 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
+
+    /* ========================================
+       NOWA WERSJA NA SERWERZE
+       Wzorzec z edytora brandmanuala: version.json obok strony,
+       porównanie z wersją wbudowaną w tę kopię, pasek z prośbą
+       o odświeżenie. Bez odpytywania, gdy pasek już wisi.
+    ======================================== */
+    const APP_VERSION = '2026.11.05.1';
+
+    (function watchVersion() {
+      const banner = document.getElementById('updateBanner');
+      if (!banner) return;
+      document.getElementById('updateReload').addEventListener('click', () => location.reload());
+
+      // Pasek łamie się na wąskim ekranie, więc wysokość mierzymy zamiast zakładać.
+      const syncHeight = () => {
+        document.documentElement.style.setProperty('--banner-h', banner.offsetHeight + 'px');
+        recalcAndDraw(); // podgląd dostaje mniej wysokości
+      };
+
+      const check = async () => {
+        if (!banner.hidden) return;
+        try {
+          const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+          if (!r.ok) return;
+          const data = await r.json();
+          if (data.version && data.version !== APP_VERSION) {
+            banner.hidden = false;
+            document.body.classList.add('has-banner');
+            syncHeight();
+            addEventListener('resize', syncHeight);
+          }
+        } catch {}
+      };
+
+      check();
+      setInterval(check, 5 * 60 * 1000);
+      addEventListener('focus', check);
+    })();
 
     /* ========================================
        EVENT BINDINGS
