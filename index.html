@@ -340,7 +340,6 @@
       outline: none;
       color: var(--text-primary);
       font-size: var(--font-body);
-      font-family: inherit;
       min-width: 0;
     }
 
@@ -378,6 +377,48 @@
       width: 10px;
       height: 10px;
     }
+
+    /* ===== LISTA ROZWIJANA ===== */
+    .form-select {
+      width: 100%;
+      appearance: none;
+      -webkit-appearance: none;
+      border: 0.6px solid var(--border-mid);
+      border-radius: var(--radius-input);
+      background: var(--bg-soft);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6.25L8 10.25L12 6.25' stroke='%2377776f' stroke-width='1.25' stroke-linecap='square'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px 16px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: var(--font-body);
+      padding: var(--pad-v-xl) 36px var(--pad-v-xl) var(--pad-h-sm);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .form-select:hover { border-color: var(--border-lighter); }
+    .form-select:focus { outline: 2px solid var(--border-focus-light); outline-offset: -1px; }
+
+    /* ===== POLE WYBORU ===== */
+    .check {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--gap-sm);
+      font-size: var(--font-small);
+      cursor: pointer;
+    }
+    .check input[type=checkbox] {
+      flex: none;
+      width: 14px;
+      height: 14px;
+      margin: calc((1lh - 14px) / 2) 0 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .check.is-disabled { opacity: 0.35; pointer-events: none; }
 
     /* ===== BUTTONS ===== */
     .btn-row {
@@ -783,6 +824,19 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label class="form-label" for="firstHeightMode" data-i18n="first_height_label">Siatka liczona od:</label>
+        <select class="form-select" id="firstHeightMode">
+          <option value="leading" data-i18n="fh_leading">Interlinii</option>
+          <option value="xheight" data-i18n="fh_xheight">Wysokości X</option>
+          <option value="capheight" data-i18n="fh_capheight">Wysokości wersalika</option>
+        </select>
+        <label class="check" id="guidesRow">
+          <input type="checkbox" id="showGuides">
+          <span data-i18n="show_guides">Pokaż linie pomocnicze</span>
+        </label>
+      </div>
+
       <div class="unit-control">
         <span class="unit-control-label" data-i18n="facing_label">Str. Widz:</span>
         <div class="pill-group" id="facingToggle">
@@ -988,6 +1042,14 @@
     const i18n = {
       pl: {
         params_title: 'Parametry:',
+        first_height_label: 'Siatka liczona od:',
+        fh_leading: 'Interlinii',
+        fh_xheight: 'Wysokości X',
+        fh_capheight: 'Wysokości wersalika',
+        show_guides: 'Pokaż linie pomocnicze',
+        r_first_height: 'Pierwsza wysokość:',
+        r_x_height: 'Wysokość X:',
+        r_cap_height: 'Wysokość wersalika:',
         unit_label: 'Jednostka:',
         page_width: 'Szerokość strony:',
         page_height: 'Wysokość strony:',
@@ -1038,6 +1100,14 @@
       },
       en: {
         params_title: 'Parameters:',
+        first_height_label: 'Grid measured from:',
+        fh_leading: 'Leading',
+        fh_xheight: 'X-height',
+        fh_capheight: 'Cap height',
+        show_guides: 'Show guide lines',
+        r_first_height: 'First height:',
+        r_x_height: 'X-height:',
+        r_cap_height: 'Cap height:',
         unit_label: 'Unit:',
         page_width: 'Page width:',
         page_height: 'Page height:',
@@ -1325,6 +1395,8 @@
         hModules: document.getElementById('hModules').value,
         gutterWidth: document.getElementById('gutterWidth').value,
         facingPages: facingPages,
+        firstHeightMode: document.getElementById('firstHeightMode').value,
+        showGuides: document.getElementById('showGuides').checked,
         mobilePanel: 'params'
       };
       localStorage.setItem('gridApp_state', JSON.stringify(state));
@@ -1359,6 +1431,8 @@
         if (s.marginRight) document.getElementById('marginRight').value = s.marginRight;
         if (s.fontSize) document.getElementById('fontSize').value = s.fontSize;
         if (s.lineHeight) document.getElementById('lineHeight').value = s.lineHeight;
+        if (s.firstHeightMode) document.getElementById('firstHeightMode').value = s.firstHeightMode;
+        if (typeof s.showGuides === 'boolean') document.getElementById('showGuides').checked = s.showGuides;
         if (s.columns) document.getElementById('columns').value = s.columns;
         if (s.hModules) {
           document.getElementById('hModules').value = s.hModules;
@@ -1467,6 +1541,31 @@
        Korzystają z niej tabela wyników, podgląd i eksport SVG —
        wcześniej każde z nich liczyło po swojemu.
     ---------------------------------------- */
+    /* Wysokość X i wersalika czytamy z kroju. Pomiar na dużym stopniu —
+       przy 8 px hinting i zaokrąglenie rastra dają błąd rzędu procentów,
+       a tu z tej wartości wychodzi pierwsza wysokość całej siatki. */
+    const GRID_FONT = 'Fragment Mono';
+    const FALLBACK_METRICS = { xRatio: 0.52, capRatio: 0.70, measured: false };
+    let gridFontFamily = GRID_FONT;
+    const metricsCache = new Map();
+
+    function measureFontMetrics(family) {
+      if (metricsCache.has(family)) return metricsCache.get(family);
+      let m = Object.assign({}, FALLBACK_METRICS);
+      try {
+        const ctx = document.createElement('canvas').getContext('2d');
+        const SIZE = 1000;
+        ctx.font = SIZE + 'px "' + family + '"';
+        const x = ctx.measureText('x').actualBoundingBoxAscent;
+        const h = ctx.measureText('H').actualBoundingBoxAscent;
+        if (Number.isFinite(x) && x > 0 && Number.isFinite(h) && h > 0) {
+          m = { xRatio: x / SIZE, capRatio: h / SIZE, measured: true };
+        }
+      } catch (e) {}
+      metricsCache.set(family, m);
+      return m;
+    }
+
     function readGridInputs() {
       const unit = currentUnit;
       const hModulesEl = document.getElementById('hModules');
@@ -1484,7 +1583,10 @@
         lineHeightMult: readDecimalInput('lineHeight', 1.2),
         columnsInput: document.getElementById('columns').value,
         hModulesInput: hModulesEl ? String(hModulesEl.value).trim() : "",
-        gutterRaw: gutterEl ? normalizeNumberString(gutterEl.value) : ''
+        gutterRaw: gutterEl ? normalizeNumberString(gutterEl.value) : '',
+        firstHeightMode: document.getElementById('firstHeightMode').value,
+        showGuides: document.getElementById('showGuides').checked,
+        metrics: measureFontMetrics(gridFontFamily)
       };
     }
 
@@ -1503,14 +1605,49 @@
         modulesClamped = true;
       }
 
-      let nRowsBase = Math.floor(availableHeight / (fontSizeConverted * p.lineHeightMult));
+      /* Pierwsza wysokość: odcinek od górnego marginesu do pierwszej linii pisma.
+         W trybie „interlinia" jest równy interlinii i siatka jest jednorodna.
+         W trybie X / wersalik pierwsza linia pisma siada tą wysokością pod
+         marginesem, a każdy kolejny odstęp to już interlinia:
+             dostępna wysokość = pierwsza wysokość + (n - 1) * interlinia      */
+      const mode = (p.firstHeightMode === 'xheight' || p.firstHeightMode === 'capheight')
+        ? p.firstHeightMode : 'leading';
+      const xHeight = p.fontSizePt * p.metrics.xRatio * p.conversionFactor;
+      const capHeight = p.fontSizePt * p.metrics.capRatio * p.conversionFactor;
+      let firstHeight = mode === 'xheight' ? xHeight : (mode === 'capheight' ? capHeight : 0);
+      // Pierwsza wysokość większa od kolumny tekstu (albo zerowa) nie da siatki — wracamy do interlinii.
+      const firstHeightFallback = mode !== 'leading' && !(firstHeight > 0 && firstHeight < availableHeight);
+      const usesFirstHeight = mode !== 'leading' && !firstHeightFallback;
+      if (!usesFirstHeight) firstHeight = 0;
+
+      let nRowsBase = usesFirstHeight
+        ? 1 + Math.floor((availableHeight - firstHeight) / (fontSizeConverted * p.lineHeightMult))
+        : Math.floor(availableHeight / (fontSizeConverted * p.lineHeightMult));
       if (nRowsBase < 1) nRowsBase = 1;
+      if (usesFirstHeight && nRowsBase < 2) nRowsBase = 2; // inaczej dzielenie przez (n - 1) = 0
 
       const fit = fitRowsToHorizontalModules(nRowsBase, modulesCount, availableHeight, fontSizeConverted);
       const nRows = fit.nRows;
       const rowsPerModule = fit.hasModules ? fit.rowsPerModule : null;
-      const baselineSpacing = availableHeight / nRows;
+
+      const splitRows = usesFirstHeight && nRows > 1;
+      const baselineSpacing = splitRows
+        ? (availableHeight - firstHeight) / (nRows - 1)
+        : availableHeight / nRows;
+      const firstGap = splitRows ? firstHeight : baselineSpacing;
       const baselineSpacingPt = baselineSpacing / p.conversionFactor;
+
+      /* Pozycje linii względem górnego marginesu — jedno źródło dla podglądu i SVG.
+         Przy jednorodnej siatce firstGap == baselineSpacing, więc wychodzi i * odstęp. */
+      const rowY = [0];
+      for (let i = 1; i <= nRows; i++) {
+        // Siatka jednorodna liczona jak dotąd (i * odstęp) — inaczej suma
+        // firstGap + (i-1)*odstęp różni się na ostatnim bicie i rusza współrzędne w SVG.
+        rowY.push(splitRows ? firstGap + (i - 1) * baselineSpacing : i * baselineSpacing);
+      }
+      // Wysokość pola wiersza — przy jednorodnej siatce wprost interlinia, z tego samego powodu.
+      const rowH = [];
+      for (let i = 0; i < nRows; i++) rowH.push(splitRows ? rowY[i + 1] - rowY[i] : baselineSpacing);
       const gapRowIndices = fit.hasModules ? getHorizontalModuleGapRowIndices(modulesCount, rowsPerModule) : [];
 
       // Światło międzykolumnowe: wartość własna albo interlinia.
@@ -1536,7 +1673,13 @@
         fontSizeConverted, availableWidth, availableHeight,
         maxHModules, modulesCount, modulesClamped, hasModulesInput,
         nRowsBase, nRows, rowsPerModule, hasModules: fit.hasModules,
-        baselineSpacing, baselineSpacingPt, gapRowIndices,
+        baselineSpacing, baselineSpacingPt, gapRowIndices, rowY, rowH,
+        mode, firstGap, firstGapPt: firstGap / p.conversionFactor,
+        xHeight, capHeight,
+        xHeightPt: p.fontSizePt * p.metrics.xRatio,
+        capHeightPt: p.fontSizePt * p.metrics.capRatio,
+        usesFirstHeight, firstHeightFallback, metricsMeasured: p.metrics.measured,
+        showGuides: p.showGuides && usesFirstHeight,
         gutterSpacing, gutterAuto, nColumns, columnsAuto, columnWidth, realLhCoeff
       };
     }
@@ -1637,6 +1780,10 @@
       const nColumns = g.nColumns;
       const columnWidth = g.columnWidth;
       const realLhCoeff = g.realLhCoeff;
+      const rowY = g.rowY;
+      const rowH = g.rowH;
+      const firstGap = g.firstGap;
+      const showGuides = g.showGuides;
 
       // Wynik z powrotem do pól — jedyne miejsce, w którym liczenie dotyka formularza.
       const hModulesEl = document.getElementById('hModules');
@@ -1660,6 +1807,9 @@
         { key: 'r_font_size', val: fmtVal(fixedFontSizePt, fontSizeConverted), copyable: true, copyVal: fmtVal(fixedFontSizePt, fontSizeConverted) },
         { key: 'r_leading', val: fmtVal(optimalBaselineSpacingPt, optimalBaselineSpacing), copyable: true, copyVal: fmtVal(optimalBaselineSpacingPt, optimalBaselineSpacing) },
         { key: 'r_lh_coeff', val: realLhCoeff.toFixed(2) },
+        { key: 'r_first_height', val: fmtVal(g.firstGapPt, firstGap) + (g.firstHeightFallback ? ' *' : '') },
+        { key: 'r_x_height', val: fmtVal(g.xHeightPt, g.xHeight) },
+        { key: 'r_cap_height', val: fmtVal(g.capHeightPt, g.capHeight) },
         { key: 'r_h_modules', val: String(hModulesInput !== "" ? modulesCount : 1) },
         { key: 'r_rows_per_mod', val: rowsPerModule !== null ? String(rowsPerModule) : '-' },
         { key: 'r_baseline_adj', val: nRows + (nRowsBase !== nRows ? ` (${nRowsBase})` : '') },
@@ -1720,8 +1870,8 @@
         if (gapRowIndices.length > 0) {
           ctx.fillStyle = 'rgba(17,59,183,0.2)';
           for (const rowIdx of gapRowIndices) {
-            const yGap = mTop + rowIdx * optimalBaselineSpacing;
-            ctx.fillRect(xOff + mLeft, yGap, aw, optimalBaselineSpacing);
+            const yGap = mTop + rowY[rowIdx];
+            ctx.fillRect(xOff + mLeft, yGap, aw, rowH[rowIdx]);
           }
         }
 
@@ -1729,11 +1879,24 @@
         ctx.strokeStyle = '#DE4343';
         ctx.lineWidth = 1 / scale;
         for (let i = 0; i <= nRows; i++) {
-          const y = mTop + i * optimalBaselineSpacing;
+          const y = mTop + rowY[i];
           ctx.beginPath();
           ctx.moveTo(xOff + mLeft, y);
           ctx.lineTo(xOff + mLeft + aw, y);
           ctx.stroke();
+        }
+
+        // Linie pomocnicze: wysokość X / wersalika nad każdą linią pisma
+        if (showGuides) {
+          ctx.strokeStyle = '#B25C00';
+          ctx.lineWidth = 1 / scale;
+          for (let i = 1; i <= nRows; i++) {
+            const y = mTop + rowY[i] - firstGap;
+            ctx.beginPath();
+            ctx.moveTo(xOff + mLeft, y);
+            ctx.lineTo(xOff + mLeft + aw, y);
+            ctx.stroke();
+          }
         }
 
         // Gutter fills
@@ -1812,6 +1975,10 @@
       const gutterSpacing = g.gutterSpacing;
       const nColumns = g.nColumns;
       const columnWidth = g.columnWidth;
+      const rowY = g.rowY;
+      const rowH = g.rowH;
+      const firstGap = g.firstGap;
+      const showGuides = g.showGuides;
 
       // Helper: generate SVG elements for one page at xOffset
       function svgPageGrid(xOff, pw, ph, mLeft, mRight, mTop, mBottom) {
@@ -1823,14 +1990,21 @@
 
         if (gapRowIndices.length > 0) {
           for (const rowIdx of gapRowIndices) {
-            const yGap = mTop + rowIdx * optimalBaselineSpacing;
-            s += `<rect x="${xOff + mLeft}" y="${yGap}" width="${aw}" height="${optimalBaselineSpacing}" fill="#113BB7" fill-opacity="0.2"/>`;
+            const yGap = mTop + rowY[rowIdx];
+            s += `<rect x="${xOff + mLeft}" y="${yGap}" width="${aw}" height="${rowH[rowIdx]}" fill="#113BB7" fill-opacity="0.2"/>`;
           }
         }
 
         for (let i = 0; i <= nRows; i++) {
-          const y = mTop + i * optimalBaselineSpacing;
+          const y = mTop + rowY[i];
           s += `<line x1="${xOff + mLeft}" y1="${y}" x2="${xOff + mLeft + aw}" y2="${y}" stroke="#DE4343" stroke-width="0.25"/>`;
+        }
+
+        if (showGuides) {
+          for (let i = 1; i <= nRows; i++) {
+            const y = mTop + rowY[i] - firstGap;
+            s += `<line x1="${xOff + mLeft}" y1="${y}" x2="${xOff + mLeft + aw}" y2="${y}" stroke="#B25C00" stroke-width="0.25"/>`;
+          }
         }
 
         for (let i = 1; i < nColumns; i++) {
@@ -1914,6 +2088,26 @@
     /* ========================================
        EVENT BINDINGS
     ======================================== */
+    /* Linie pomocnicze mają sens tylko wtedy, gdy pierwsza wysokość różni się od interlinii. */
+    function updateGuidesRow() {
+      const row = document.getElementById('guidesRow');
+      const off = document.getElementById('firstHeightMode').value === 'leading';
+      row.classList.toggle('is-disabled', off);
+      document.getElementById('showGuides').disabled = off;
+    }
+
+    document.getElementById('firstHeightMode').addEventListener('change', () => {
+      updateGuidesRow();
+      recalcAndDraw();
+      saveState();
+    });
+    document.getElementById('showGuides').addEventListener('change', () => { recalcAndDraw(); saveState(); });
+
+    /* Metryki mierzone przed wczytaniem kroju pochodzą z zastępczego — przeliczamy po załadowaniu. */
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => { metricsCache.clear(); updateGuidesRow(); recalcAndDraw(); });
+    }
+
     document.getElementById('recalc').addEventListener('click', () => { recalcAndDraw(); saveState(); });
     document.getElementById('downloadSVG').addEventListener('click', downloadSVG);
 
@@ -1933,6 +2127,9 @@
       document.getElementById('columns').value = '1';
       document.getElementById('hModules').value = '1';
       document.getElementById('gutterWidth').value = '';
+      document.getElementById('firstHeightMode').value = 'leading';
+      document.getElementById('showGuides').checked = false;
+      updateGuidesRow();
       facingPages = false;
       document.querySelectorAll('#facingToggle .pill').forEach(p => {
         p.classList.toggle('is-active', p.dataset.value === 'single');
