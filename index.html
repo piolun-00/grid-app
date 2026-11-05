@@ -25,10 +25,10 @@
   <style>
     /* ===== DESIGN TOKENS ===== */
     :root {
-      --radius-card: 6px;
-      --radius-input: 8px;
-      --radius-button: 4px;
-      --radius-badge: 9999px;
+      --radius-card: 2px;
+      --radius-input: 2px;
+      --radius-button: 2px;
+      --radius-badge: 2px;
       --gap-xs: 4px;
       --gap-sm: 8px;
       --gap-md: 16px;
@@ -51,21 +51,44 @@
       --font-body: 14px;
       --font-small: 12px;
       --font-caption: 9px;
-      /* Colors */
-      --bg-app: #111;
-      --bg-panel-dark: #2E2E2E;
-      --bg-panel-light: #555;
-      --border-dark: #222;
-      --border-mid: #717171;
-      --border-light: #777;
-      --border-lighter: #8F8F8F;
-      --border-focus-light: #AEAEAE;
-      --text-primary: #DEDEDE;
-      --text-muted: #555;
-      --accent: #D11C1C;
-      --accent-border: #F94138;
-      --accent-border-light: #FA6A5C;
-      --accent-text: #FDD3CC;
+      /* Kolory — paleta edytora brandmanuala (editor.css) */
+      --bg-app: #F4F4F2;
+      --bg-panel: #FFFFFF;
+      --bg-soft: #F0F0EC;
+      --bg-soft-hover: #E8E8E4;
+      --border-dark: #E2E2DD;
+      --border-mid: #E2E2DD;
+      --border-light: #E2E2DD;
+      --border-lighter: #C9C9C3;
+      --border-focus-light: #111111;
+      --text-primary: #111111;
+      --text-muted: #77776F;
+      /* Stan aktywny: czarne tło, biały tekst */
+      --accent: #111111;
+      --accent-border: #111111;
+      --accent-text: #FFFFFF;
+      /* Dotknięcie przycisku ±: czerwony błysk (zachowany z e354be4) */
+      --press-bg: #DE4343;
+      --press-border: #C62D1F;
+      --press-fg: #FFFFFF;
+    }
+
+    /* Geist — interfejs. SIL OFL 1.1, patrz Typefaces/geist/LICENSE.txt */
+    @font-face {
+      font-family: 'Geist';
+      src: url('Typefaces/geist/geist-latin-wght-normal.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: 'Geist';
+      src: url('Typefaces/geist/geist-latin-ext-wght-normal.woff2') format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
     }
 
     /* ===== FONT ===== */
@@ -93,7 +116,8 @@
       height: 100svh;
     }
     body {
-      font-family: 'Fragment Mono', monospace;
+      font-family: 'Geist', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      font-weight: 500;
       background: var(--bg-app);
       color: var(--text-primary);
       font-size: var(--font-body);
@@ -126,7 +150,7 @@
     }
     .panel-params {
       margin: 32px 0;
-      background: var(--bg-panel-dark);
+      background: var(--bg-panel);
       border: 1px solid var(--border-dark);
       border-radius: var(--radius-card);
       padding: var(--pad-v-xl) var(--pad-h-md) var(--pad-h-lg);
@@ -143,7 +167,7 @@
     /* ===== PANEL USTAWIENIE ===== */
     .panel-results {
       margin: 32px 0;
-      background: var(--bg-panel-light);
+      background: var(--bg-soft);
       border: 1px solid var(--border-dark);
       border-radius: var(--radius-card);
       padding: var(--pad-v-xl) var(--pad-h-md) var(--pad-h-lg);
@@ -184,6 +208,7 @@
     }
     canvas {
       background: #fff;
+      box-shadow: 0 0 0 1px var(--border-lighter), 0 8px 24px rgba(0, 0, 0, .06);
       display: block;
     }
 
@@ -212,7 +237,7 @@
       line-height: 1.2;
       cursor: pointer;
       border: 0.6px solid var(--border-mid);
-      background: var(--bg-panel-light);
+      background: var(--bg-soft);
       color: var(--text-primary);
       font-family: inherit;
       transition: background 0.3s ease-out, border-color 0.3s ease-out, color 0.3s ease-out;
@@ -226,7 +251,7 @@
 
     /* ===== LIGHT VARIANT (panel Ustawienie) ===== */
     .panel-results .pill {
-      background: var(--border-mid);
+      background: var(--bg-soft);
       border-color: var(--border-lighter);
     }
     .panel-results .pill.is-active {
@@ -235,22 +260,25 @@
       color: var(--accent-text);
     }
     .panel-results .btn {
-      background: var(--border-mid);
+      background: var(--bg-soft);
       border-color: var(--border-lighter);
+    }
+    /* .panel-results .btn ma wyższą swoistość niż .btn--full — akcja główna musi ją przebić */
+    .panel-results .btn--full {
+      background: var(--accent);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
     }
     .panel-results .btn:active {
-      background: var(--accent-border);
-      border-color: var(--accent-border-light);
-      color: var(--accent);
+      background: var(--press-bg);
+      border-color: var(--press-border);
+      color: var(--press-fg);
     }
-    .panel-results .btn--full {
-      background: var(--border-mid);
-      border-color: var(--border-lighter);
-    }
+
     .panel-results .btn--full:active {
-      background: var(--accent-border);
-      border-color: var(--accent-border-light);
-      color: var(--accent);
+      background: var(--press-bg);
+      border-color: var(--press-border);
+      color: var(--press-fg);
     }
 
     /* ===== FORM FIELD ===== */
@@ -268,16 +296,18 @@
       align-items: center;
       gap: var(--gap-lg);
       height: var(--size-sm);
-      background: var(--bg-panel-light);
+      background: var(--bg-soft);
       border: 0.6px solid var(--border-mid);
       border-radius: var(--radius-input);
       padding: 0 var(--pad-h-sm);
     }
     .form-field:focus-within {
-      background: var(--border-mid);
+      background: var(--bg-soft);
       border-color: var(--border-lighter);
     }
     .form-input {
+      font-family: 'Fragment Mono', monospace;
+      font-variant-numeric: tabular-nums;
       flex: 1;
       background: transparent;
       border: none;
@@ -298,7 +328,7 @@
       width: 16px;
       height: 16px;
       border-radius: var(--radius-badge);
-      background: var(--bg-panel-light);
+      background: var(--bg-soft);
       border: 0.4px solid var(--border-mid);
       display: flex;
       align-items: center;
@@ -309,9 +339,9 @@
     }
     .ctrl-btn:active,
     .ctrl-btn.is-pressed {
-      background: var(--accent-border);
-      border-color: var(--accent-border-light);
-      color: var(--accent);
+      background: var(--press-bg);
+      border-color: var(--press-border);
+      color: var(--press-fg);
     }
     .ctrl-btn.is-inactive {
       opacity: 0.35;
@@ -341,21 +371,23 @@
       font-family: inherit;
       cursor: pointer;
       border: 0.6px solid var(--border-mid);
-      background: var(--bg-panel-light);
+      background: var(--bg-soft);
       color: var(--text-primary);
       transition: background 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out;
       white-space: nowrap;
     }
     .btn:active {
-      background: var(--accent-border);
-      border-color: var(--accent-border-light);
-      color: var(--accent);
+      background: var(--press-bg);
+      border-color: var(--press-border);
+      color: var(--press-fg);
     }
     .btn--small { width: 146px; }
+    /* Akcja główna panelu — czarna, jak „Eksport ZIP” w edytorze brandmanuala */
     .btn--full {
       width: 100%;
-      background: var(--border-mid);
-      border-color: var(--border-lighter);
+      background: var(--accent);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
       gap: var(--gap-sm);
     }
     .btn svg {
@@ -385,6 +417,8 @@
       transition: background 0.3s ease-out;
     }
     .result-value {
+      font-family: 'Fragment Mono', monospace;
+      font-variant-numeric: tabular-nums;
       text-align: right;
     }
 
@@ -399,7 +433,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--bg-panel-dark);
+      background: var(--bg-panel);
       border: 0.6px solid var(--border-dark);
       border-radius: var(--radius-button);
       font-size: var(--font-caption);
@@ -485,7 +519,7 @@
       line-height: 1.2;
       cursor: pointer;
       border: 0.6px solid var(--border-mid);
-      background: var(--bg-panel-light);
+      background: var(--bg-soft);
       color: var(--text-primary);
       font-family: inherit;
       transition: background 0.3s ease-out, border-color 0.3s ease-out, color 0.3s ease-out;
@@ -522,11 +556,11 @@
     /* ===== HOVER STATES (pointer devices only) ===== */
     @media (hover: hover) and (pointer: fine) {
       .pill:not(.is-active):hover {
-        background: var(--border-mid);
+        background: var(--bg-soft);
         border-color: var(--border-lighter);
       }
       .panel-results .pill:not(.is-active):hover {
-        background: var(--border-lighter);
+        background: var(--bg-soft-hover);
         border-color: var(--border-focus-light);
       }
       .panel-results .btn:hover,
@@ -546,7 +580,7 @@
         color: var(--accent-text);
       }
       .result-row.is-copyable:hover {
-        background: var(--border-mid);
+        background: var(--bg-soft);
       }
       .result-row.is-copyable .result-value:hover ~ .copy-tooltip {
         opacity: 1;
@@ -559,7 +593,7 @@
         color: var(--text-primary);
       }
       .pill-wide:hover {
-        background: var(--border-mid);
+        background: var(--bg-soft);
         border-color: var(--border-lighter);
       }
     }
