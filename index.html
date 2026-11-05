@@ -47,8 +47,8 @@
       --size-sm: 32px;
       --size-md: 40px;
       --size-lg: 48px;
-      --font-h4: 28px;
-      --font-body: 14px;
+      --font-h4: 20px;
+      --font-body: 13px;
       --font-small: 12px;
       --font-caption: 9px;
       /* Kolory — paleta edytora brandmanuala (editor.css) */
@@ -121,6 +121,7 @@
       background: var(--bg-app);
       color: var(--text-primary);
       font-size: var(--font-body);
+      line-height: 1.35;
     }
 
     /* ===== PASEK NOWEJ WERSJI ===== */
@@ -179,27 +180,27 @@
       background: var(--bg-panel);
       border: 1px solid var(--border-dark);
       border-radius: var(--radius-card);
-      padding: var(--pad-v-xl) var(--pad-h-md) var(--pad-h-lg);
+      padding: var(--layout-md);
       display: flex;
       flex-direction: column;
-      gap: var(--gap-md);
+      gap: 14px;
     }
     .panel-title {
       font-size: var(--font-h4);
-      font-weight: normal;
-      line-height: 1;
+      font-weight: 500;
+      line-height: 1.2;
     }
 
     /* ===== PANEL USTAWIENIE ===== */
     .panel-results {
       margin: 32px 0;
-      background: var(--bg-soft);
+      background: var(--bg-panel);
       border: 1px solid var(--border-dark);
       border-radius: var(--radius-card);
-      padding: var(--pad-v-xl) var(--pad-h-md) var(--pad-h-lg);
+      padding: var(--layout-md);
       display: flex;
       flex-direction: column;
-      gap: var(--gap-md);
+      gap: 14px;
     }
 
     /* ===== CANVAS AREA ===== */
@@ -253,8 +254,9 @@
       gap: var(--gap-xs);
     }
     .pill {
-      width: var(--size-lg);
+      min-width: var(--size-lg);
       height: var(--size-xs);
+      padding: 0 var(--pad-h-xs);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -262,11 +264,11 @@
       font-size: var(--font-small);
       line-height: 1.2;
       cursor: pointer;
-      border: 0.6px solid var(--border-mid);
+      border: 0;
       background: var(--bg-soft);
       color: var(--text-primary);
       font-family: inherit;
-      transition: background 0.3s ease-out, border-color 0.3s ease-out, color 0.3s ease-out;
+      transition: background 0.3s ease-out, color 0.3s ease-out;
       user-select: none;
     }
     .pill.is-active {
@@ -316,20 +318,24 @@
     }
     .form-label {
       font-size: var(--font-small);
+      color: var(--text-muted);
     }
     .form-field {
       display: flex;
       align-items: center;
       gap: var(--gap-lg);
       height: var(--size-sm);
-      background: var(--bg-soft);
-      border: 0.6px solid var(--border-mid);
+      background: var(--bg-panel);
+      border: 1px solid var(--border-mid);
       border-radius: var(--radius-input);
-      padding: 0 var(--pad-h-sm);
+      padding: 0 9px;
+    }
+    .form-field:hover {
+      border-color: var(--border-lighter);
     }
     .form-field:focus-within {
-      background: var(--bg-soft);
-      border-color: var(--border-lighter);
+      outline: 2px solid var(--border-focus-light);
+      outline-offset: -1px;
     }
     .form-input {
       font-family: 'Fragment Mono', monospace;
@@ -383,9 +389,9 @@
       width: 100%;
       appearance: none;
       -webkit-appearance: none;
-      border: 0.6px solid var(--border-mid);
+      border: 1px solid var(--border-mid);
       border-radius: var(--radius-input);
-      background: var(--bg-soft);
+      background: var(--bg-panel);
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M4 6.25L8 10.25L12 6.25' stroke='%2377776f' stroke-width='1.25' stroke-linecap='square'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 12px center;
@@ -437,8 +443,8 @@
       font-size: var(--font-body);
       font-family: inherit;
       cursor: pointer;
-      border: 0.6px solid var(--border-mid);
-      background: var(--bg-soft);
+      border: 1px solid var(--border-mid);
+      background: var(--bg-panel);
       color: var(--text-primary);
       transition: background 0.15s ease-out, border-color 0.15s ease-out, color 0.15s ease-out;
       white-space: nowrap;
@@ -476,7 +482,7 @@
       height: var(--size-sm);
       padding: 0 2px;
       font-size: var(--font-small);
-      border-bottom: 0.6px solid var(--border-light);
+      border-bottom: 1px solid var(--border-light);
       position: relative;
     }
     .result-row.is-copyable {
@@ -630,22 +636,23 @@
         background: var(--bg-soft-hover);
         border-color: var(--border-focus-light);
       }
-      .panel-results .btn:hover,
-      .panel-results .btn--full:hover {
-        background: var(--accent);
-        border-color: var(--accent-border);
-        color: var(--accent-text);
+      .panel-results .btn:hover {
+        border-color: var(--text-primary);
       }
       .ctrl-btn:hover {
         background: var(--accent);
         border-color: var(--accent-border);
         color: var(--accent-text);
       }
-      .btn:hover,
+      /* Edytor zmienia na hover samą linię, nie wypełnienie — poza akcją główną. */
+      .btn:hover {
+        border-color: var(--text-primary);
+      }
       .btn--full:hover {
         background: var(--accent);
         border-color: var(--accent-border);
         color: var(--accent-text);
+        opacity: 0.85;
       }
       .result-row.is-copyable:hover {
         background: var(--bg-soft);
