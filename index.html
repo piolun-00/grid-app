@@ -1355,21 +1355,6 @@
       return Math.max(maxM, 1);
     }
 
-    function computeColumns(availableWidth, fontSizeConverted, columnsInput) {
-      if (columnsInput !== "") {
-        return Math.max(parseInt(columnsInput), 1);
-      }
-      let nColumns;
-      if (readDecimalInput('fontSize', 8) <= 8) {
-        nColumns = 4;
-      } else {
-        nColumns = Math.floor(availableWidth / (fontSizeConverted * 5));
-        nColumns = Math.max(nColumns, 1);
-      }
-      document.getElementById('columns').value = nColumns;
-      return nColumns;
-    }
-
     function fitRowsToHorizontalModules(baseRows, modules, availableHeight, fontSizeConverted) {
       const M = Math.max(parseInt(modules, 10) || 1, 1);
       if (M <= 1) return { nRows: baseRows, rowsPerModule: baseRows, hasModules: false };
@@ -1406,6 +1391,87 @@
       }
       return gaps;
     }
+
+    /* ----------------------------------------
+       Jedno miejsce, w którym liczy się siatka.
+       Czysta funkcja: te same wejścia dają ten sam wynik.
+       Korzystają z niej tabela wyników, podgląd i eksport SVG —
+       wcześniej każde z nich liczyło po swojemu.
+    ---------------------------------------- */
+    function readGridInputs() {
+      const unit = currentUnit;
+      const hModulesEl = document.getElementById('hModules');
+      const gutterEl = document.getElementById('gutterWidth');
+      return {
+        unit,
+        conversionFactor: (unit === "mm") ? 0.3528 : 1.3333,
+        pageWidth: readDecimalInput('pageWidth', 0),
+        pageHeight: readDecimalInput('pageHeight', 0),
+        marginTop: readDecimalInput('marginTop', 0),
+        marginBottom: readDecimalInput('marginBottom', 0),
+        marginLeft: readDecimalInput('marginLeft', 0),
+        marginRight: readDecimalInput('marginRight', 0),
+        fontSizePt: readDecimalInput('fontSize', 8),
+        lineHeightMult: readDecimalInput('lineHeight', 1.2),
+        columnsInput: document.getElementById('columns').value,
+        hModulesInput: hModulesEl ? String(hModulesEl.value).trim() : "",
+        gutterRaw: gutterEl ? normalizeNumberString(gutterEl.value) : ''
+      };
+    }
+
+    function computeGrid(p) {
+      const fontSizeConverted = p.fontSizePt * p.conversionFactor;
+      const availableWidth = p.pageWidth - (p.marginLeft + p.marginRight);
+      const availableHeight = p.pageHeight - (p.marginTop + p.marginBottom);
+
+      // Moduły poziome: wartość z pola, ograniczona tym, co mieści się na stronie.
+      const maxHModules = computeMaxHModules(availableHeight, fontSizeConverted);
+      const hasModulesInput = p.hModulesInput !== "";
+      let modulesCount = hasModulesInput ? Math.max(parseInt(p.hModulesInput, 10) || 1, 1) : 1;
+      let modulesClamped = false;
+      if (hasModulesInput && modulesCount > maxHModules) {
+        modulesCount = lastValidHModules;
+        modulesClamped = true;
+      }
+
+      let nRowsBase = Math.floor(availableHeight / (fontSizeConverted * p.lineHeightMult));
+      if (nRowsBase < 1) nRowsBase = 1;
+
+      const fit = fitRowsToHorizontalModules(nRowsBase, modulesCount, availableHeight, fontSizeConverted);
+      const nRows = fit.nRows;
+      const rowsPerModule = fit.hasModules ? fit.rowsPerModule : null;
+      const baselineSpacing = availableHeight / nRows;
+      const baselineSpacingPt = baselineSpacing / p.conversionFactor;
+      const gapRowIndices = fit.hasModules ? getHorizontalModuleGapRowIndices(modulesCount, rowsPerModule) : [];
+
+      // Światło międzykolumnowe: wartość własna albo interlinia.
+      const gutterCustom = parseFloat(p.gutterRaw);
+      const gutterAuto = !(p.gutterRaw !== '' && Number.isFinite(gutterCustom) && gutterCustom >= 0);
+      const gutterSpacing = gutterAuto ? baselineSpacing : gutterCustom;
+
+      // Kolumny: wartość z pola albo wyliczona ze stopnia pisma.
+      const columnsAuto = p.columnsInput === "";
+      let nColumns;
+      if (!columnsAuto) {
+        nColumns = Math.max(parseInt(p.columnsInput, 10), 1);
+      } else if (p.fontSizePt <= 8) {
+        nColumns = 4;
+      } else {
+        nColumns = Math.max(Math.floor(availableWidth / (fontSizeConverted * 5)), 1);
+      }
+
+      const columnWidth = (availableWidth - (nColumns - 1) * gutterSpacing) / nColumns;
+      const realLhCoeff = fontSizeConverted > 0 ? baselineSpacing / fontSizeConverted : p.lineHeightMult;
+
+      return {
+        fontSizeConverted, availableWidth, availableHeight,
+        maxHModules, modulesCount, modulesClamped, hasModulesInput,
+        nRowsBase, nRows, rowsPerModule, hasModules: fit.hasModules,
+        baselineSpacing, baselineSpacingPt, gapRowIndices,
+        gutterSpacing, gutterAuto, nColumns, columnsAuto, columnWidth, realLhCoeff
+      };
+    }
+
 
     /* ========================================
        UPDATE ± BUTTON STATES
@@ -1476,63 +1542,40 @@
        RECALC AND DRAW
     ======================================== */
     function recalcAndDraw() {
-      const unit = currentUnit;
-      const conversionFactor = (unit === "mm") ? 0.3528 : 1.3333;
+      const p = readGridInputs();
+      const g = computeGrid(p);
 
-      const pageWidth = readDecimalInput('pageWidth', 0);
-      const pageHeight = readDecimalInput('pageHeight', 0);
-      const marginTop = readDecimalInput('marginTop', 0);
-      const marginBottom = readDecimalInput('marginBottom', 0);
-      const marginLeft = readDecimalInput('marginLeft', 0);
-      const marginRight = readDecimalInput('marginRight', 0);
-      const fixedFontSizePt = readDecimalInput('fontSize', 8);
-      const lineHeightMult = readDecimalInput('lineHeight', 1.2);
-      const columnsInput = document.getElementById('columns').value;
+      const unit = p.unit;
+      const pageWidth = p.pageWidth;
+      const pageHeight = p.pageHeight;
+      const marginTop = p.marginTop;
+      const marginBottom = p.marginBottom;
+      const marginLeft = p.marginLeft;
+      const marginRight = p.marginRight;
+      const fixedFontSizePt = p.fontSizePt;
+      const hModulesInput = p.hModulesInput;
+
+      const fontSizeConverted = g.fontSizeConverted;
+      const availableWidthVal = g.availableWidth;
+      const modulesCount = g.modulesCount;
+      const nRowsBase = g.nRowsBase;
+      const nRows = g.nRows;
+      const rowsPerModule = g.rowsPerModule;
+      const optimalBaselineSpacing = g.baselineSpacing;
+      const optimalBaselineSpacingPt = g.baselineSpacingPt;
+      const gapRowIndices = g.gapRowIndices;
+      const gutterSpacing = g.gutterSpacing;
+      const nColumns = g.nColumns;
+      const columnWidth = g.columnWidth;
+      const realLhCoeff = g.realLhCoeff;
+
+      // Wynik z powrotem do pól — jedyne miejsce, w którym liczenie dotyka formularza.
       const hModulesEl = document.getElementById('hModules');
-      const hModulesInput = hModulesEl ? String(hModulesEl.value).trim() : "";
-
-      let modulesCount = (hModulesInput !== "") ? Math.max(parseInt(hModulesInput, 10) || 1, 1) : 1;
-
-      const fontSizeConverted = fixedFontSizePt * conversionFactor;
-      const availableWidthVal = pageWidth - (marginLeft + marginRight);
-      const availableHeight = pageHeight - (marginTop + marginBottom);
-
-      const maxHModules = computeMaxHModules(availableHeight, fontSizeConverted);
-      if (hModulesEl && hModulesInput !== "" && modulesCount > maxHModules) {
-        modulesCount = lastValidHModules;
-        hModulesEl.value = String(lastValidHModules);
-      }
-
-      let nRowsBase = Math.floor(availableHeight / (fontSizeConverted * lineHeightMult));
-      if (nRowsBase < 1) nRowsBase = 1;
-
-      const fit = fitRowsToHorizontalModules(nRowsBase, modulesCount, availableHeight, fontSizeConverted);
-
-      if (hModulesEl && hModulesInput !== "") {
-        lastValidHModules = modulesCount;
-      } else {
-        lastValidHModules = 1;
-      }
-
-      const nRows = fit.nRows;
-      const rowsPerModule = fit.hasModules ? fit.rowsPerModule : null;
-      const optimalBaselineSpacing = availableHeight / nRows;
-      const optimalBaselineSpacingPt = optimalBaselineSpacing / conversionFactor;
-      const gapRowIndices = fit.hasModules ? getHorizontalModuleGapRowIndices(modulesCount, rowsPerModule) : [];
-
-      // Gutter: custom value or auto (= baseline spacing)
+      if (hModulesEl && g.modulesClamped) hModulesEl.value = String(modulesCount);
+      lastValidHModules = g.hasModulesInput ? modulesCount : 1;
+      if (g.columnsAuto) document.getElementById('columns').value = nColumns;
       const gutterEl = document.getElementById('gutterWidth');
-      const gutterRaw = gutterEl ? normalizeNumberString(gutterEl.value) : '';
-      const gutterCustom = parseFloat(gutterRaw);
-      const gutterSpacing = (gutterRaw !== '' && Number.isFinite(gutterCustom) && gutterCustom >= 0) ? gutterCustom : optimalBaselineSpacing;
       if (gutterEl) gutterEl.placeholder = optimalBaselineSpacing.toFixed(2);
-
-      // Real line height coefficient (actual leading / font size in unit)
-      const realLhCoeff = fontSizeConverted > 0 ? optimalBaselineSpacing / fontSizeConverted : lineHeightMult;
-
-      let nColumns = computeColumns(availableWidthVal, fontSizeConverted, columnsInput);
-      const totalGutter = (nColumns - 1) * gutterSpacing;
-      const columnWidth = (availableWidthVal - totalGutter) / nColumns;
 
       // ===== BUILD RESULTS TABLE =====
       const ptUnit = t('unit_pt'); // pkt or pt
@@ -1683,47 +1726,23 @@
        DOWNLOAD SVG
     ======================================== */
     function downloadSVG() {
-      const unit = currentUnit;
-      const conversionFactor = (unit === "mm") ? 0.3528 : 1.3333;
+      const p = readGridInputs();
+      const g = computeGrid(p);
 
-      const pageWidth = readDecimalInput('pageWidth', 0);
-      const pageHeight = readDecimalInput('pageHeight', 0);
-      const marginTop = readDecimalInput('marginTop', 0);
-      const marginBottom = readDecimalInput('marginBottom', 0);
-      const marginLeft = readDecimalInput('marginLeft', 0);
-      const marginRight = readDecimalInput('marginRight', 0);
-      const fixedFontSizePt = readDecimalInput('fontSize', 8);
-      const lineHeightMult = readDecimalInput('lineHeight', 1.2);
-      const columnsInput = document.getElementById('columns').value;
-      const hModulesInput = document.getElementById('hModules') ? document.getElementById('hModules').value : "";
+      const unit = p.unit;
+      const pageWidth = p.pageWidth;
+      const pageHeight = p.pageHeight;
+      const marginTop = p.marginTop;
+      const marginBottom = p.marginBottom;
+      const marginLeft = p.marginLeft;
+      const marginRight = p.marginRight;
 
-      const fontSizeConverted = fixedFontSizePt * conversionFactor;
-      const availableWidth = pageWidth - (marginLeft + marginRight);
-      const availableHeight = pageHeight - (marginTop + marginBottom);
-
-      let nRowsBase = Math.floor(availableHeight / (fontSizeConverted * lineHeightMult));
-      if (nRowsBase < 1) nRowsBase = 1;
-
-      const modulesCount = (hModulesInput !== "") ? Math.max(parseInt(hModulesInput), 1) : 1;
-      const fit = fitRowsToHorizontalModules(nRowsBase, modulesCount, availableHeight, fontSizeConverted);
-      const nRows = fit.nRows;
-      const rowsPerModule = fit.hasModules ? fit.rowsPerModule : null;
-      const optimalBaselineSpacing = availableHeight / nRows;
-      const gapRowIndices = fit.hasModules ? getHorizontalModuleGapRowIndices(modulesCount, rowsPerModule) : [];
-      const gutterElSvg = document.getElementById('gutterWidth');
-      const gutterRawSvg = gutterElSvg ? normalizeNumberString(gutterElSvg.value) : '';
-      const gutterCustomSvg = parseFloat(gutterRawSvg);
-      const gutterSpacing = (gutterRawSvg !== '' && Number.isFinite(gutterCustomSvg) && gutterCustomSvg >= 0) ? gutterCustomSvg : optimalBaselineSpacing;
-
-      let nColumns;
-      if (columnsInput !== "") {
-        nColumns = Math.max(parseInt(columnsInput), 1);
-      } else {
-        nColumns = fixedFontSizePt <= 8 ? 4 : Math.max(Math.floor(availableWidth / (fontSizeConverted * 5)), 1);
-      }
-
-      const totalGutter = (nColumns - 1) * gutterSpacing;
-      const columnWidth = (availableWidth - totalGutter) / nColumns;
+      const nRows = g.nRows;
+      const optimalBaselineSpacing = g.baselineSpacing;
+      const gapRowIndices = g.gapRowIndices;
+      const gutterSpacing = g.gutterSpacing;
+      const nColumns = g.nColumns;
+      const columnWidth = g.columnWidth;
 
       // Helper: generate SVG elements for one page at xOffset
       function svgPageGrid(xOff, pw, ph, mLeft, mRight, mTop, mBottom) {
