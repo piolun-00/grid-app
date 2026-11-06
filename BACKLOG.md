@@ -13,8 +13,9 @@ nie z przypuszczeń — liczby są zmierzone.
 - [ ] **Sześć `catch {}` połyka błędy.** Najgroźniejszy: zapis do IndexedDB.
       W oknie prywatnym lub przy braku miejsca zapis nie przechodzi, a status
       dalej pokazuje „zapisano".
-- [ ] **Marginesy większe od strony** nie dają ostrzeżenia — kolumna tekstu
-      schodzi do zera i siatka robi się bezsensowna.
+- [x] **Marginesy większe od strony.** Pasek ostrzeżenia nad wynikami plus
+      obrys pól, które go powodują. Osobne komunikaty dla szerokości,
+      wysokości i obu naraz.
 
 ## Optymalizacje
 

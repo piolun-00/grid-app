@@ -815,6 +815,9 @@
       margin: 0;
     }
     .note.is-warn { color: #B25C00; }
+    .note[hidden] { display: none; }
+    /* Pole, które powoduje ostrzeżenie — żeby było widać które. */
+    .form-field.is-warn { border-color: #B25C00; }
 
     /* ===== BUTTONS ===== */
     .btn-row {
@@ -1498,6 +1501,7 @@
     <div class="panel-scroll panel-scroll--results">
     <div class="panel-results" id="panelResults">
       <div class="panel-title" data-i18n="results_title">Ustawienie:</div>
+      <p class="note is-warn" id="gridWarn" hidden></p>
 
       <div class="unit-control">
         <span class="unit-control-label" data-i18n="unit_label">Jednostka:</span>
@@ -1586,6 +1590,9 @@
         show_guides: 'Pokaż linie pomocnicze',
         show_specimen: 'Pokaż podgląd tekstu',
         sec_document: 'Dokument',
+        warn_width: 'Marginesy boczne są szersze niż strona — nie zostaje miejsca na kolumnę tekstu.',
+        warn_height: 'Marginesy górny i dolny są wyższe niż strona — nie zostaje miejsca na kolumnę tekstu.',
+        warn_both: 'Marginesy są większe niż strona — nie zostaje miejsca na kolumnę tekstu.',
         proj_list: 'Projekty',
         dlg_cancel: 'Anuluj',
         dlg_ok: 'OK',
@@ -1686,6 +1693,9 @@
         show_guides: 'Show guide lines',
         show_specimen: 'Show text preview',
         sec_document: 'Document',
+        warn_width: 'Side margins are wider than the page — no room left for the text column.',
+        warn_height: 'Top and bottom margins are taller than the page — no room left for the text column.',
+        warn_both: 'Margins are larger than the page — no room left for the text column.',
         proj_list: 'Projects',
         dlg_cancel: 'Cancel',
         dlg_ok: 'OK',
@@ -3038,6 +3048,7 @@
 
       return {
         fontSizeConverted, availableWidth, availableHeight,
+        zaWaskie: availableWidth <= 0, zaNiskie: availableHeight <= 0,
         maxHModules, modulesCount, modulesClamped, hasModulesInput,
         nRowsBase, nRows, rowsPerModule, hasModules: fit.hasModules,
         baselineSpacing, baselineSpacingPt, gapRowIndices, rowY, rowH,
@@ -3192,6 +3203,22 @@
         { key: facingPages ? 'r_margin_inner' : 'r_margin_l', val: `${marginLeft.toFixed(2)} ${unit}` },
         { key: facingPages ? 'r_margin_outer' : 'r_margin_r', val: `${marginRight.toFixed(2)} ${unit}` },
       ];
+
+      /* Marginesy większe od strony dawały po cichu bezsensowną siatkę:
+         kolumna tekstu schodzi do zera lub poniżej, a liczby dalej się
+         wyświetlają, jakby wszystko było w porządku. */
+      const ostrz = document.getElementById('gridWarn');
+      const zle = g.zaWaskie || g.zaNiskie;
+      if (ostrz) {
+        ostrz.hidden = !zle;
+        ostrz.textContent = !zle ? ''
+          : (g.zaWaskie && g.zaNiskie) ? t('warn_both')
+          : g.zaWaskie ? t('warn_width') : t('warn_height');
+      }
+      document.querySelectorAll('#marginLeft, #marginRight').forEach(
+        el => el.closest('.form-field').classList.toggle('is-warn', g.zaWaskie));
+      document.querySelectorAll('#marginTop, #marginBottom').forEach(
+        el => el.closest('.form-field').classList.toggle('is-warn', g.zaNiskie));
 
       const tableEl = document.getElementById('resultsTable');
       tableEl.innerHTML = rows.map(r => {
@@ -3460,7 +3487,7 @@
        porównanie z wersją wbudowaną w tę kopię, pasek z prośbą
        o odświeżenie. Bez odpytywania, gdy pasek już wisi.
     ======================================== */
-    const APP_VERSION = '2026.11.06.20';
+    const APP_VERSION = '2026.11.06.21';
 
     document.getElementById('topbarVersion').textContent = 'v' + APP_VERSION;
 
