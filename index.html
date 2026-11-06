@@ -2362,7 +2362,13 @@
        Wartości w mm; przy jednostce px przeliczane tym samym
        współczynnikiem co reszta aplikacji (pt -> jednostka).
     ======================================== */
-    const MM_TO_PX = 1.3333 / 0.3528;
+    /* Przeliczniki z definicji, nie zaokrąglone. Wcześniejsze 0,3528
+       i 1,3333 dawały błąd +63 i −25 ppm, a razem −88 ppm na przejściu
+       mm → px: A4 wychodziło 793,63 px zamiast 793,70. */
+    const PT_NA_MM = 25.4 / 72;   // 1 punkt w milimetrach
+    const PT_NA_PX = 96 / 72;     // 1 punkt w pikselach CSS (96 dpi)
+    const MM_TO_PX = 96 / 25.4;   // 1 milimetr w pikselach CSS
+    const przelicznik = u => (u === 'mm') ? PT_NA_MM : PT_NA_PX;
 
     function formatToUnit(mm) {
       return currentUnit === 'mm' ? mm : mm * MM_TO_PX;
@@ -2945,7 +2951,7 @@
       const gutterEl = document.getElementById('gutterWidth');
       return {
         unit,
-        conversionFactor: (unit === "mm") ? 0.3528 : 1.3333,
+        conversionFactor: przelicznik(unit),
         pageWidth: readDecimalInput('pageWidth', 0),
         pageHeight: readDecimalInput('pageHeight', 0),
         marginTop: readDecimalInput('marginTop', 0),
@@ -3076,7 +3082,7 @@
           if (dir === -1 && v <= min) inactive = true;
           if (dir === 1 && targetId === 'hModules') {
             const unit = currentUnit;
-            const cf = (unit === 'mm') ? 0.3528 : 1.3333;
+            const cf = przelicznik(unit);
             const fsc = readDecimalInput('fontSize', 8) * cf;
             const ah = readDecimalInput('pageHeight', 0) - readDecimalInput('marginTop', 0) - readDecimalInput('marginBottom', 0);
             const maxM = computeMaxHModules(ah, fsc);
@@ -3228,20 +3234,56 @@
       document.querySelectorAll('#marginTop, #marginBottom').forEach(
         el => el.closest('.form-field').classList.toggle('is-warn', g.zaNiskie));
 
+      /* Tabela była przebudowywana przez innerHTML przy każdym przeliczeniu,
+         razem z podpinaniem nasłuchu do każdego kopiowalnego wiersza od nowa.
+         Układ wierszy zmienia się tylko przy zmianie języka albo przejściu na
+         rozkładówkę, więc budujemy go raz, a potem podmieniamy same teksty.
+         Nasłuch kopiowania jest jeden, na całej tabeli. */
       const tableEl = document.getElementById('resultsTable');
-      tableEl.innerHTML = rows.map(r => {
-        const cls = r.copyable ? ' is-copyable' : '';
-        const tooltip = r.copyable ? `<span class="copy-tooltip">${t('copy')}</span>` : '';
-        return `<div class="result-row${cls}" ${r.copyable ? `data-copy-val="${r.copyVal}"` : ''}>
-          <span>${t(r.key)}</span>
-          <span class="result-value">${r.val}</span>
-          ${tooltip}
-        </div>`;
-      }).join('');
+      const uklad = rows.map(r => r.key + (r.copyable ? '*' : '')).join('|');
 
-      // Attach copy handlers
-      tableEl.querySelectorAll('.is-copyable').forEach(row => {
-        row.addEventListener('click', () => copyValue(row, row.dataset.copyVal));
+      if (tableEl.dataset.uklad !== uklad) {
+        tableEl.dataset.uklad = uklad;
+        const frag = document.createDocumentFragment();
+        for (const r of rows) {
+          const wiersz = document.createElement('div');
+          wiersz.className = 'result-row' + (r.copyable ? ' is-copyable' : '');
+          const etykieta = document.createElement('span');
+          const wartosc = document.createElement('span');
+          wartosc.className = 'result-value';
+          wiersz.append(etykieta, wartosc);
+          if (r.copyable) {
+            const dymek = document.createElement('span');
+            dymek.className = 'copy-tooltip';
+            wiersz.appendChild(dymek);
+          }
+          frag.appendChild(wiersz);
+        }
+        tableEl.replaceChildren(frag);
+
+        if (!tableEl.dataset.nasluch) {
+          tableEl.dataset.nasluch = '1';
+          tableEl.addEventListener('click', e => {
+            const w = e.target.closest('.is-copyable');
+            if (w && tableEl.contains(w)) copyValue(w, w.dataset.copyVal);
+          });
+        }
+      }
+
+      const wiersze = tableEl.children;
+      rows.forEach((r, i) => {
+        const w = wiersze[i];
+        if (!w) return;
+        w.children[0].textContent = t(r.key);
+        w.children[1].textContent = r.val;
+        if (r.copyable) {
+          w.dataset.copyVal = r.copyVal;
+          const dymek = w.querySelector('.copy-tooltip');
+          // Tekst dymka zmienia copyValue po skopiowaniu — nie nadpisujemy go wtedy.
+          if (dymek && !w.classList.contains('is-copied') && !w.classList.contains('is-just-copied')) {
+            dymek.textContent = t('copy');
+          }
+        }
       });
 
       // ===== DRAW CANVAS =====
@@ -3495,7 +3537,7 @@
        porównanie z wersją wbudowaną w tę kopię, pasek z prośbą
        o odświeżenie. Bez odpytywania, gdy pasek już wisi.
     ======================================== */
-    const APP_VERSION = '2026.11.06.23';
+    const APP_VERSION = '2026.11.06.24';
 
     document.getElementById('topbarVersion').textContent = 'v' + APP_VERSION;
 
