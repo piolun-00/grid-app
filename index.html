@@ -426,6 +426,43 @@
     }
     .check.is-disabled { opacity: 0.35; pointer-events: none; }
 
+    /* ===== WIERSZ PLIKU ===== */
+    .file {
+      display: flex;
+      align-items: center;
+      gap: var(--gap-sm);
+      min-width: 0;
+    }
+    .file .btn { flex: none; }
+    .file__name {
+      flex: 1 1 0;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text-muted);
+      font-size: var(--font-small);
+    }
+    .link {
+      border: 0;
+      background: none;
+      padding: 0;
+      flex: none;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: var(--font-small);
+      text-decoration: underline;
+      text-underline-offset: .15em;
+      cursor: pointer;
+    }
+    .link:hover { color: var(--text-primary); }
+    .note {
+      color: var(--text-muted);
+      font-size: var(--font-small);
+      margin: 0;
+    }
+    .note.is-warn { color: #B25C00; }
+
     /* ===== BUTTONS ===== */
     .btn-row {
       display: flex;
@@ -842,6 +879,25 @@
           <input type="checkbox" id="showGuides">
           <span data-i18n="show_guides">Pokaż linie pomocnicze</span>
         </label>
+        <label class="check">
+          <input type="checkbox" id="showSpecimen">
+          <span data-i18n="show_specimen">Pokaż podgląd tekstu</span>
+        </label>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" data-i18n="font_label">Krój do pomiaru:</label>
+        <label class="check">
+          <input type="checkbox" id="fontLicensed">
+          <span data-i18n="font_licence">Mam licencję na krój, który wgrywam</span>
+        </label>
+        <div class="file">
+          <button type="button" class="btn" id="fontPick" disabled data-i18n="font_pick">Wgraj plik</button>
+          <span class="file__name" id="fontName">Fragment Mono</span>
+          <button type="button" class="link" id="fontClear" hidden data-i18n="font_clear">Usuń</button>
+        </div>
+        <p class="note" id="fontNote" data-i18n="font_note">Plik nie opuszcza przeglądarki — aplikacja nie ma serwera. Po odświeżeniu wraca krój wbudowany.</p>
+        <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden>
       </div>
 
       <div class="unit-control">
@@ -1054,6 +1110,18 @@
         fh_xheight: 'Wysokości X',
         fh_capheight: 'Wysokości wersalika',
         show_guides: 'Pokaż linie pomocnicze',
+        show_specimen: 'Pokaż podgląd tekstu',
+        font_label: 'Krój do pomiaru:',
+        font_licence: 'Mam licencję na krój, który wgrywam',
+        font_pick: 'Wgraj plik',
+        font_clear: 'Usuń',
+        font_note: 'Plik nie opuszcza przeglądarki — aplikacja nie ma serwera. Po odświeżeniu wraca krój wbudowany.',
+        font_note_metrics: 'Wysokości czytane z metryk kroju (tablica OS/2).',
+        font_note_measured: 'Krój bez metryk OS/2 — wysokości zmierzone z rysunku znaków „x" i „H".',
+        font_err_read: 'Nie udało się wczytać pliku jako kroju.',
+        r_font_source: 'Źródło wysokości:',
+        src_metrics: 'metryki kroju',
+        src_measured: 'pomiar znaków',
         r_first_height: 'Pierwsza wysokość:',
         r_x_height: 'Wysokość X:',
         r_cap_height: 'Wysokość wersalika:',
@@ -1112,6 +1180,18 @@
         fh_xheight: 'X-height',
         fh_capheight: 'Cap height',
         show_guides: 'Show guide lines',
+        show_specimen: 'Show text preview',
+        font_label: 'Font to measure:',
+        font_licence: 'I hold a licence for the font I upload',
+        font_pick: 'Upload file',
+        font_clear: 'Remove',
+        font_note: 'The file never leaves your browser — this app has no server. Reloading restores the built-in font.',
+        font_note_metrics: 'Heights read from the font metrics (OS/2 table).',
+        font_note_measured: 'No OS/2 metrics — heights measured from the "x" and "H" glyphs.',
+        font_err_read: 'Could not read this file as a font.',
+        r_font_source: 'Height source:',
+        src_metrics: 'font metrics',
+        src_measured: 'glyph measurement',
         r_first_height: 'First height:',
         r_x_height: 'X-height:',
         r_cap_height: 'Cap height:',
@@ -1404,6 +1484,7 @@
         facingPages: facingPages,
         firstHeightMode: document.getElementById('firstHeightMode').value,
         showGuides: document.getElementById('showGuides').checked,
+        showSpecimen: document.getElementById('showSpecimen').checked,
         mobilePanel: 'params'
       };
       localStorage.setItem('gridApp_state', JSON.stringify(state));
@@ -1440,6 +1521,7 @@
         if (s.lineHeight) document.getElementById('lineHeight').value = s.lineHeight;
         if (s.firstHeightMode) document.getElementById('firstHeightMode').value = s.firstHeightMode;
         if (typeof s.showGuides === 'boolean') document.getElementById('showGuides').checked = s.showGuides;
+        if (typeof s.showSpecimen === 'boolean') document.getElementById('showSpecimen').checked = s.showSpecimen;
         if (s.columns) document.getElementById('columns').value = s.columns;
         if (s.hModules) {
           document.getElementById('hModules').value = s.hModules;
@@ -1551,10 +1633,59 @@
     /* Wysokość X i wersalika czytamy z kroju. Pomiar na dużym stopniu —
        przy 8 px hinting i zaokrąglenie rastra dają błąd rzędu procentów,
        a tu z tej wartości wychodzi pierwsza wysokość całej siatki. */
+    const LOREM = ('lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor '
+      + 'incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud '
+      + 'exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure '
+      + 'in reprehenderit voluptate velit esse cillum eu fugiat nulla pariatur excepteur sint '
+      + 'occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum').split(' ');
+
     const GRID_FONT = 'Fragment Mono';
     const FALLBACK_METRICS = { xRatio: 0.52, capRatio: 0.70, measured: false };
     let gridFontFamily = GRID_FONT;
+    let fontFromTables = false;
+    /* Wgrany krój rejestrujemy pod własną nazwą wewnętrzną. Plik potrafi zgłosić
+       tę samą rodzinę co krój wbudowany — wtedy nadpisałby go w document.fonts
+       razem z metrykami i nie dałoby się go już odpiąć. */
+    let customFace = null;
+    let customSeq = 0;
     const metricsCache = new Map();
+
+    /* Metryki z pliku: sfnt (ttf/otf) trzyma wysokość X i wersalika w tablicy OS/2
+       od wersji 2. To wartości od projektanta kroju, dokładniejsze niż pomiar rysunku.
+       WOFF/WOFF2 są spakowane i tu nie wejdą — dla nich zostaje pomiar znaków. */
+    function readFontTables(buffer) {
+      const out = { family: '', unitsPerEm: 0, sxHeight: 0, sCapHeight: 0 };
+      try {
+        const dv = new DataView(buffer);
+        const tag = dv.getUint32(0);
+        if (tag !== 0x00010000 && tag !== 0x4F54544F && tag !== 0x74727565) return out;
+        const count = dv.getUint16(4), tables = {};
+        for (let i = 0; i < count; i++) {
+          const o = 12 + i * 16;
+          const name = String.fromCharCode(dv.getUint8(o), dv.getUint8(o + 1), dv.getUint8(o + 2), dv.getUint8(o + 3));
+          tables[name] = dv.getUint32(o + 8);
+        }
+        if (tables.head != null) out.unitsPerEm = dv.getUint16(tables.head + 18);
+        if (tables['OS/2'] != null && dv.getUint16(tables['OS/2']) >= 2) {
+          out.sxHeight = dv.getInt16(tables['OS/2'] + 86);
+          out.sCapHeight = dv.getInt16(tables['OS/2'] + 88);
+        }
+        if (tables.name != null) {
+          const t = tables.name, n = dv.getUint16(t + 2), strOff = t + dv.getUint16(t + 4), names = {};
+          for (let i = 0; i < n; i++) {
+            const r = t + 6 + i * 12, pid = dv.getUint16(r), id = dv.getUint16(r + 6);
+            const len = dv.getUint16(r + 8), off = strOff + dv.getUint16(r + 10);
+            if ((id !== 1 && id !== 16) || (names[id] && pid !== 3)) continue;
+            let str = '';
+            if (pid === 3 || pid === 0) for (let k = 0; k < len; k += 2) str += String.fromCharCode(dv.getUint16(off + k));
+            else for (let k = 0; k < len; k++) str += String.fromCharCode(dv.getUint8(off + k));
+            names[id] = str;
+          }
+          out.family = names[16] || names[1] || '';
+        }
+      } catch (e) {}
+      return out;
+    }
 
     function measureFontMetrics(family) {
       if (metricsCache.has(family)) return metricsCache.get(family);
@@ -1571,6 +1702,35 @@
       } catch (e) {}
       metricsCache.set(family, m);
       return m;
+    }
+
+    /* Krój użytkownika żyje tylko w tej sesji — plik nigdzie nie jest zapisywany. */
+    async function loadFontFile(file) {
+      const buf = await file.arrayBuffer();
+      const tables = readFontTables(buf);
+      const base = file.name.replace(/\.[^.]+$/, '');
+      const label = (tables.family || base || 'Krój użytkownika').trim();
+      const internal = 'kh-upload-' + (++customSeq);
+
+      const face = new FontFace(internal, buf);
+      await face.load();
+      document.fonts.add(face);
+      if (customFace) document.fonts.delete(customFace);
+      customFace = face;
+
+      let fromTables = false;
+      if (tables.unitsPerEm > 0 && tables.sxHeight > 0 && tables.sCapHeight > 0) {
+        metricsCache.set(internal, {
+          xRatio: tables.sxHeight / tables.unitsPerEm,
+          capRatio: tables.sCapHeight / tables.unitsPerEm,
+          measured: true
+        });
+        fromTables = true;
+      }
+
+      gridFontFamily = internal;
+      fontFromTables = fromTables;
+      return { family: label, fromTables };
     }
 
     function readGridInputs() {
@@ -1791,6 +1951,7 @@
       const rowH = g.rowH;
       const firstGap = g.firstGap;
       const showGuides = g.showGuides;
+      const showSpecimen = document.getElementById('showSpecimen').checked;
 
       // Wynik z powrotem do pól — jedyne miejsce, w którym liczenie dotyka formularza.
       const hModulesEl = document.getElementById('hModules');
@@ -1817,6 +1978,7 @@
         { key: 'r_first_height', val: fmtVal(g.firstGapPt, firstGap) + (g.firstHeightFallback ? ' *' : '') },
         { key: 'r_x_height', val: fmtVal(g.xHeightPt, g.xHeight) },
         { key: 'r_cap_height', val: fmtVal(g.capHeightPt, g.capHeight) },
+        { key: 'r_font_source', val: fontFromTables ? t('src_metrics') : t('src_measured') },
         { key: 'r_h_modules', val: String(hModulesInput !== "" ? modulesCount : 1) },
         { key: 'r_rows_per_mod', val: rowsPerModule !== null ? String(rowsPerModule) : '-' },
         { key: 'r_baseline_adj', val: nRows + (nRowsBase !== nRows ? ` (${nRowsBase})` : '') },
@@ -1925,6 +2087,37 @@
           ctx.moveTo(x, mTop);
           ctx.lineTo(x, mTop + ah);
           ctx.stroke();
+        }
+
+        // Podgląd treści: lorem ipsum na liniach pisma, w wybranym kroju
+        if (showSpecimen && fontSizeConverted > 0) {
+          ctx.save();
+          ctx.fillStyle = 'rgba(17, 17, 17, 0.8)';
+          ctx.font = fontSizeConverted + 'px "' + gridFontFamily + '"';
+          ctx.textBaseline = 'alphabetic';
+          let w = 0;
+          for (let col = 0; col < nColumns; col++) {
+            const x0 = xOff + mLeft + col * (columnWidth + gutterSpacing);
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(x0, mTop, columnWidth, ah);
+            ctx.clip();
+            for (let i = 1; i <= nRows; i++) {
+              if (gapRowIndices.indexOf(i - 1) !== -1) continue; // puste pole między modułami
+              let line = '';
+              for (let guard = 0; guard < 64; guard++) {
+                const word = LOREM[w % LOREM.length];
+                const probe = line ? line + ' ' + word : word;
+                if (line && ctx.measureText(probe).width > columnWidth) break;
+                line = probe;
+                w++;
+                if (ctx.measureText(line).width > columnWidth) break;
+              }
+              ctx.fillText(line, x0, mTop + rowY[i]);
+            }
+            ctx.restore();
+          }
+          ctx.restore();
         }
       }
 
@@ -2103,6 +2296,56 @@
       document.getElementById('showGuides').disabled = off;
     }
 
+    /* Oświadczenie licencyjne odblokowuje wgranie — wzorzec z edytora brandmanuala,
+       razem z datą oświadczenia. Aplikacja nie weryfikuje licencji i nie może tego robić. */
+    const fontLicensed = document.getElementById('fontLicensed');
+    const fontPick = document.getElementById('fontPick');
+    const fontFile = document.getElementById('fontFile');
+    const fontName = document.getElementById('fontName');
+    const fontClear = document.getElementById('fontClear');
+    const fontNote = document.getElementById('fontNote');
+    let fontLicensedAt = '';
+
+    function resetFont() {
+      if (customFace) { document.fonts.delete(customFace); customFace = null; }
+      gridFontFamily = GRID_FONT;
+      fontFromTables = false;
+      fontName.textContent = GRID_FONT;
+      fontClear.hidden = true;
+      fontNote.classList.remove('is-warn');
+      fontNote.textContent = t('font_note');
+      fontFile.value = '';
+      recalcAndDraw();
+    }
+
+    fontLicensed.addEventListener('change', () => {
+      fontPick.disabled = !fontLicensed.checked;
+      fontLicensedAt = fontLicensed.checked ? new Date().toISOString().slice(0, 10) : '';
+      if (!fontLicensed.checked && customFace) resetFont();
+    });
+
+    fontPick.addEventListener('click', () => fontFile.click());
+    fontClear.addEventListener('click', resetFont);
+
+    fontFile.addEventListener('change', async () => {
+      const file = fontFile.files[0];
+      if (!file) return;
+      try {
+        const res = await loadFontFile(file);
+        fontName.textContent = res.family + (fontLicensedAt ? ' · ' + fontLicensedAt.split('-').reverse().join('.') : '');
+        fontClear.hidden = false;
+        fontNote.classList.remove('is-warn');
+        fontNote.textContent = t(res.fromTables ? 'font_note_metrics' : 'font_note_measured');
+        recalcAndDraw();
+      } catch (e) {
+        fontNote.classList.add('is-warn');
+        fontNote.textContent = t('font_err_read');
+        fontFile.value = '';
+      }
+    });
+
+    document.getElementById('showSpecimen').addEventListener('change', () => { recalcAndDraw(); saveState(); });
+
     document.getElementById('firstHeightMode').addEventListener('change', () => {
       updateGuidesRow();
       recalcAndDraw();
@@ -2136,6 +2379,7 @@
       document.getElementById('gutterWidth').value = '';
       document.getElementById('firstHeightMode').value = 'leading';
       document.getElementById('showGuides').checked = false;
+      document.getElementById('showSpecimen').checked = false;
       updateGuidesRow();
       facingPages = false;
       document.querySelectorAll('#facingToggle .pill').forEach(p => {
