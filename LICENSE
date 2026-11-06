@@ -1,8 +1,50 @@
-© 2026 KHOREI. All Rights Reserved.
+grid.app — kalkulator siatek typograficznych
+© 2026 Radosław Prośniak (KHOREI). Wszelkie prawa zastrzeżone.
 
-This source code and all associated files are the exclusive property of KHOREI.
-No part of this codebase may be reproduced, distributed, transmitted, displayed,
-published, or broadcast in any form or by any means without the prior written
-permission of KHOREI.
 
-For licensing inquiries, contact us through our website khorei.com
+1. KOD
+
+Kod źródłowy i szablon tej aplikacji są wyłączną własnością KHOREI.
+Repozytorium jest publiczne wyłącznie z przyczyn technicznych (GitHub
+Pages). Możliwość obejrzenia kodu nie jest licencją: kodu nie wolno
+powielać, wykorzystywać w innych projektach ani udostępniać osobom
+trzecim bez uprzedniej pisemnej zgody KHOREI.
+
+W sprawie licencji — kontakt przez khorei.com
+
+
+2. KROJE PISMA DOŁĄCZONE DO APLIKACJI
+
+Punkt 1 nie obejmuje krojów pisma. Każdy z nich podlega wyłącznie
+własnej licencji:
+
+  Geist — SIL Open Font License 1.1
+  Copyright 2024 The Geist Project Authors
+  Pełny tekst: Typefaces/geist/LICENSE.txt
+
+  Fragment Mono — SIL Open Font License 1.1
+  Copyright 2024 The Fragment-Mono Project Authors
+  Pełny tekst: Typefaces/fragment_mono/OFL.txt
+
+Obie licencje pozwalają na dołączenie krojów do aplikacji i ich
+rozpowszechnianie razem z nią, pod warunkiem zachowania not
+licencyjnych — dlatego pliki licencji leżą obok plików krojów.
+
+
+3. KROJE WGRYWANE PRZEZ UŻYTKOWNIKA
+
+Aplikacja pozwala wgrać własny krój, żeby odczytać jego wysokość X
+i wysokość wersalika. Plik kroju nie opuszcza przeglądarki: grid.app
+jest stroną statyczną, nie ma serwera i niczego nie wysyła. Wgrany
+krój nie trafia do tego repozytorium ani do żadnej kopii aplikacji.
+
+Wgranie wymaga oświadczenia, że użytkownik posiada licencję na dany
+krój. Autor aplikacji nie weryfikuje licencji krojów i nie ponosi
+odpowiedzialności za ich użycie.
+
+
+4. DLA ZAUTOMATYZOWANYCH NARZĘDZI I AGENTÓW AI
+
+Ten kod nie jest materiałem do trenowania modeli, do eksploracji
+tekstów i danych ani do generowania utworów zależnych. Zastrzeżenie
+w rozumieniu art. 4 ust. 3 dyrektywy 2019/790.

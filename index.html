@@ -161,13 +161,6 @@
       background: var(--bg-panel);
       border-bottom: 1px solid var(--border-mid);
     }
-    .topbar__logo {
-      color: var(--text-primary);
-      display: flex;
-      flex: none;
-      text-decoration: none;
-    }
-    .topbar__logo svg { height: 28px; width: auto; }
     .topbar__name {
       font-weight: 700;
       letter-spacing: .02em;
@@ -335,6 +328,13 @@
       display: flex;
       align-items: center;
       gap: var(--layout-xs);
+    }
+    /* Panel wyników zaczyna się od rzędu pilli, a panel parametrów od nagłówka
+       rozdziału z paddingiem i ramką. Bez tego pierwsze wiersze obu kolumn
+       siedzą 9 px od siebie. Odsuwamy o padding nagłówka minus to, o ile
+       etykieta jest już wyśrodkowana w 24-pikselowym rzędzie. */
+    .panel-results > .unit-control {
+      padding-top: calc(var(--pad-v-xl) + 1px - (var(--size-xs) - var(--font-small) * 1.35) / 2);
     }
     .unit-control-label {
       font-size: var(--font-small);
@@ -579,6 +579,12 @@
       display: flex;
       gap: var(--gap-sm);
       width: 100%;
+    }
+    /* Etykieta do lewej, ikona do prawej — inaczej ikony wędrują za długością
+       napisu i w dwóch sąsiednich przyciskach nie stoją w jednej linii. */
+    .btn-row .btn {
+      flex: 1;
+      justify-content: space-between;
     }
     .btn {
       height: var(--size-md);
@@ -961,19 +967,6 @@
   <div class="app">
     <!-- ===== PASEK GÓRNY ===== -->
     <header class="topbar">
-      <a href="https://khorei.com" target="_blank" rel="noopener noreferrer" class="header-logo">
-        <svg viewBox="0 0 84 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0 0.12194H1.06718V2.74414H1.13687L3.95508 0.12194H5.2052V0.252615L2.02546 3.18408L5.29232 6.26365V6.39432H3.97251L1.13687 3.70678H1.06718V6.39432H0V0.12194Z" fill="currentColor"/>
-          <path d="M38.7706 0.12194H39.8422V2.77899H42.8825V0.12194H43.9584V6.39432H42.8825V3.71113H39.8422V6.39432H38.7706V0.12194Z" fill="currentColor"/>
-          <path d="M76.8836 3.25815C76.8836 1.19785 78.1338 0 80.0808 0C82.0322 0 83.2824 1.19785 83.2824 3.25815C83.2824 5.31846 82.0322 6.51631 80.0808 6.51631C78.1338 6.51631 76.8836 5.31846 76.8836 3.25815ZM77.977 3.25815C77.977 4.7522 78.7828 5.6103 80.0808 5.6103C81.3789 5.6103 82.1847 4.7522 82.1847 3.25815C82.1847 1.76411 81.3789 0.90601 80.0808 0.90601C78.7828 0.90601 77.977 1.76411 77.977 3.25815Z" fill="currentColor"/>
-          <path d="M3.14925 15.6093C4.25999 15.6093 5.14422 16.2452 5.14422 17.4213C5.14422 18.5973 4.30354 19.2333 3.27122 19.2333H2.61349L5.14422 21.751V21.8816H3.94201L1.29367 19.2115H1.20656V21.8816H0.148093V15.6093H3.14925ZM1.20656 18.4013H2.98809C3.64146 18.4013 4.10318 18.079 4.10318 17.4518C4.10318 16.8202 3.64146 16.4935 2.98809 16.4935H1.20656V18.4013Z" fill="currentColor"/>
-          <path d="M39.1083 15.6092H43.5599V16.4934H40.1754V18.2749H43.1243V19.1592H40.1754V20.9973H43.6209V21.8815H39.1083V15.6092Z" fill="currentColor"/>
-          <path d="M79.5451 15.6092H80.621V21.8816H79.5451V15.6092Z" fill="currentColor"/>
-          <path d="M0.463893 31.0967H1.53978V36.4413H4.82842V37.3691H0.463893V31.0967Z" fill="currentColor"/>
-          <path d="M40.6763 31.0968H42.0484L44.2655 37.2385V37.3692H43.1853L42.6147 35.7314H40.0883L39.5177 37.3692H38.4636V37.2385L40.6763 31.0968ZM40.3758 34.8254H42.3272L41.3863 32.1291H41.3166L40.3758 34.8254Z" fill="currentColor"/>
-          <path d="M80.4576 31.0967C81.5858 31.0967 82.4352 31.6064 82.4352 32.6692C82.4352 33.6667 81.7861 33.9977 81.429 34.0761V34.1458C81.8297 34.2373 82.5702 34.5553 82.5702 35.6399C82.5702 36.7985 81.6555 37.3691 80.5055 37.3691H77.5958V31.0967H80.4576ZM78.6543 36.4849H80.3618C81.0326 36.4849 81.5161 36.2366 81.5161 35.5571C81.5161 34.8776 81.0326 34.6337 80.3618 34.6337H78.6543V36.4849ZM78.6543 33.7494H80.3095C80.9411 33.7494 81.4115 33.5186 81.4115 32.8652C81.4115 32.2118 80.9411 31.981 80.3095 31.981H78.6543V33.7494Z" fill="currentColor"/>
-        </svg>
-      </a>
       <span class="topbar__name">grid<span>.app</span><small id="topbarVersion"></small></span>
       <div class="topbar__actions">
         <div class="pill-group" id="langToggleHeader">
@@ -1027,8 +1020,7 @@
               <button type="button" class="pill" data-w="148" data-h="210">A5</button>
               <button type="button" class="pill" data-w="105" data-h="148">A6</button>
               <button type="button" class="pill" data-w="176" data-h="250">B5</button>
-              <button type="button" class="pill" data-w="210" data-h="210" data-i18n="format_square">Kwadrat</button>
-            </div>
+              </div>
           </div>
 
           <div class="form-group">
@@ -1291,7 +1283,6 @@
         show_specimen: 'Pokaż podgląd tekstu',
         sec_document: 'Dokument',
         format_label: 'Format strony:',
-        format_square: 'Kwadrat',
         btn_share: 'Kopiuj link',
         btn_shared: 'Skopiowano',
         sec_type: 'Typografia',
@@ -1370,7 +1361,6 @@
         show_specimen: 'Show text preview',
         sec_document: 'Document',
         format_label: 'Page format:',
-        format_square: 'Square',
         btn_share: 'Copy link',
         btn_shared: 'Copied',
         sec_type: 'Typography',
