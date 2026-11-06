@@ -232,6 +232,71 @@
       margin-left: auto;
     }
 
+    /* ===== PROJEKT W PASKU GÓRNYM ===== */
+    .topbar__project { position: relative; flex: none; }
+    .btn.is--ghost {
+      background: none;
+      border-color: transparent;
+      padding: var(--pad-v-xs, 4px) var(--pad-h-xs);
+      gap: var(--gap-sm);
+      max-width: 240px;
+    }
+    .btn.is--ghost:hover { border-color: var(--border-mid); }
+    .btn.is--ghost span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .saved {
+      color: var(--text-muted);
+      font-size: var(--font-small);
+      white-space: nowrap;
+    }
+    .menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      z-index: 40;
+      min-width: 280px;
+      max-height: 60vh;
+      overflow: auto;
+      padding: var(--gap-sm);
+      display: grid;
+      gap: 2px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-card);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+    }
+    .menu[hidden] { display: none; }
+    .menu__label {
+      color: var(--text-muted);
+      font-size: var(--font-small);
+      padding: var(--pad-v-xs, 4px) var(--pad-h-xs);
+    }
+    .menu button {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--gap-md);
+      width: 100%;
+      text-align: left;
+      border: 0;
+      background: none;
+      font: inherit;
+      color: inherit;
+      padding: 7px var(--pad-h-xs);
+      border-radius: var(--radius-button);
+      cursor: pointer;
+    }
+    .menu button:hover, .menu button.is-on { background: var(--bg-soft); }
+    .menu button small { color: var(--text-muted); flex: none; }
+    .menu button.is--danger { color: var(--press-border); }
+    .menu hr { border: 0; border-top: 1px solid var(--border-mid); margin: var(--gap-xs) 0; }
+    .topbar__history { display: flex; gap: var(--gap-xs); }
+    .topbar__history .btn { padding: var(--pad-v-xs, 4px) var(--pad-h-xs); }
+    .btn:disabled { opacity: .35; cursor: default; }
+    .btn:disabled:hover { border-color: var(--border-mid); }
+
     /* ===== LAYOUT ===== */
     .app {
       display: flex;
@@ -1049,7 +1114,38 @@
     <!-- ===== PASEK GÓRNY ===== -->
     <header class="topbar">
       <span class="topbar__name">grid<span>.app</span><small id="topbarVersion"></small></span>
+
+      <div class="topbar__project">
+        <button type="button" class="btn is--ghost" id="projectBtn" aria-haspopup="true" aria-expanded="false">
+          <span id="projectName">—</span>
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="square"/></svg>
+        </button>
+        <div class="menu" id="projectMenu" hidden>
+          <div class="menu__label" data-i18n="proj_list">Projekty</div>
+          <div id="projectList"></div>
+          <hr>
+          <button type="button" id="projNew" data-i18n="proj_new">Nowy projekt</button>
+          <button type="button" id="projDup" data-i18n="proj_dup">Duplikuj</button>
+          <button type="button" id="projRename" data-i18n="proj_rename">Zmień nazwę</button>
+          <hr>
+          <button type="button" id="projExport" data-i18n="proj_export">Eksportuj do pliku</button>
+          <button type="button" id="projImport" data-i18n="proj_import">Wczytaj z pliku</button>
+          <hr>
+          <button type="button" id="projDelete" class="is--danger" data-i18n="proj_delete">Usuń projekt</button>
+        </div>
+      </div>
+      <span class="saved" id="savedStatus"></span>
+      <input type="file" id="projFile" accept="application/json,.json" hidden>
+
       <div class="topbar__actions">
+        <div class="topbar__history">
+          <button type="button" class="btn" id="undoBtn" disabled aria-label="cofnij">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M7 19V17H13.1C14.15 17 15.0625 16.6667 15.8375 16C16.6125 15.3333 17 14.5 17 13.5C17 12.5 16.6125 11.6667 15.8375 11C15.0625 10.3333 14.15 10 13.1 10H7.8L10.4 12.6L9 14L4 9L9 4L10.4 5.4L7.8 8H13.1C14.7167 8 16.1042 8.52917 17.2625 9.5875C18.4208 10.6458 19 11.9458 19 13.5C19 15.0542 18.4208 16.3542 17.2625 17.4125C16.1042 18.4708 14.7167 19 13.1 19H7Z" fill="currentColor"/></svg>
+          </button>
+          <button type="button" class="btn" id="redoBtn" disabled aria-label="ponów">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M10.9 19C9.28333 19 7.89583 18.4708 6.7375 17.4125C5.57917 16.3542 5 15.0542 5 13.5C5 11.9458 5.57917 10.6458 6.7375 9.5875C7.89583 8.52917 9.28333 8 10.9 8H16.2L13.6 5.4L15 4L20 9L15 14L13.6 12.6L16.2 10H10.9C9.85 10 8.9375 10.3333 8.1625 11C7.3875 11.6667 7 12.5 7 13.5C7 14.5 7.3875 15.3333 8.1625 16C8.9375 16.6667 9.85 17 10.9 17H17V19H10.9Z" fill="currentColor"/></svg>
+          </button>
+        </div>
         <div class="pill-group" id="langToggleHeader">
           <button type="button" class="pill is-active" data-value="pl">Pl</button>
           <button type="button" class="pill" data-value="en">En</button>
@@ -1192,7 +1288,7 @@
                 <input type="checkbox" id="fontLicensed">
                 <span data-i18n="font_licence">Mam licencję na krój, który wgrywam</span>
               </label>
-              <p class="note" id="fontNote" data-i18n="font_note">Plik nie opuszcza przeglądarki — aplikacja nie ma serwera. Po odświeżeniu wraca krój wbudowany.</p>
+              <p class="note" id="fontNote" data-i18n="font_note">Plik zostaje na Twoim urządzeniu — aplikacja nie ma serwera i niczego nie wysyła. Krój zapisuje się w projekcie razem z datą oświadczenia.</p>
             </div>
             <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden>
           </div>
@@ -1374,6 +1470,22 @@
         show_guides: 'Pokaż linie pomocnicze',
         show_specimen: 'Pokaż podgląd tekstu',
         sec_document: 'Dokument',
+        proj_list: 'Projekty',
+        proj_new: 'Nowy projekt',
+        proj_dup: 'Duplikuj',
+        proj_rename: 'Zmień nazwę',
+        proj_delete: 'Usuń projekt',
+        proj_export: 'Eksportuj do pliku',
+        proj_import: 'Wczytaj z pliku',
+        proj_untitled: 'Bez nazwy',
+        proj_copy: 'kopia',
+        proj_name_prompt: 'Nazwa projektu:',
+        proj_delete_confirm: 'Usunąć projekt „{name}"? Tego nie da się cofnąć.',
+        proj_font: 'z krojem',
+        saved_now: 'zapisano teraz',
+        saved_min: 'zapisano {n} min temu',
+        saved_hour: 'zapisano ponad godzinę temu',
+        import_err: 'To nie jest plik projektu grid.app.',
         format_label: 'Format strony:',
         btn_share: 'Kopiuj link',
         zoom_fit: 'Dopasuj',
@@ -1387,7 +1499,7 @@
         font_licence: 'Mam licencję na krój, który wgrywam',
         font_pick: 'Wgraj plik',
         font_clear: 'Usuń',
-        font_note: 'Plik nie opuszcza przeglądarki — aplikacja nie ma serwera. Po odświeżeniu wraca krój wbudowany.',
+        font_note: 'Plik zostaje na Twoim urządzeniu — aplikacja nie ma serwera i niczego nie wysyła. Krój zapisuje się w projekcie razem z datą oświadczenia.',
         font_note_metrics: 'Wysokości czytane z metryk kroju (tablica OS/2).',
         font_note_measured: 'Krój bez metryk OS/2 — wysokości zmierzone z rysunku znaków „x" i „H".',
         font_err_read: 'Nie udało się wczytać pliku jako kroju.',
@@ -1453,6 +1565,22 @@
         show_guides: 'Show guide lines',
         show_specimen: 'Show text preview',
         sec_document: 'Document',
+        proj_list: 'Projects',
+        proj_new: 'New project',
+        proj_dup: 'Duplicate',
+        proj_rename: 'Rename',
+        proj_delete: 'Delete project',
+        proj_export: 'Export to file',
+        proj_import: 'Load from file',
+        proj_untitled: 'Untitled',
+        proj_copy: 'copy',
+        proj_name_prompt: 'Project name:',
+        proj_delete_confirm: 'Delete project "{name}"? This cannot be undone.',
+        proj_font: 'with font',
+        saved_now: 'saved just now',
+        saved_min: 'saved {n} min ago',
+        saved_hour: 'saved over an hour ago',
+        import_err: 'This is not a grid.app project file.',
         format_label: 'Page format:',
         btn_share: 'Copy link',
         zoom_fit: 'Fit',
@@ -1466,7 +1594,7 @@
         font_licence: 'I hold a licence for the font I upload',
         font_pick: 'Upload file',
         font_clear: 'Remove',
-        font_note: 'The file never leaves your browser — this app has no server. Reloading restores the built-in font.',
+        font_note: 'The file stays on your device — this app has no server and sends nothing. The font is saved with the project, along with the date of your declaration.',
         font_note_metrics: 'Heights read from the font metrics (OS/2 table).',
         font_note_measured: 'No OS/2 metrics — heights measured from the "x" and "H" glyphs.',
         font_err_read: 'Could not read this file as a font.',
@@ -1767,8 +1895,8 @@
     /* ========================================
        STATE (localStorage)
     ======================================== */
-    function saveState() {
-      const state = {
+    function readState() {
+      return {
         unit: currentUnit,
         outputUnit: currentOutputUnit,
         lang: currentLang,
@@ -1791,14 +1919,25 @@
         previewZoom: previewZoom,
         mobilePanel: 'params'
       };
-      localStorage.setItem('gridApp_state', JSON.stringify(state));
     }
 
-    function loadState() {
-      const saved = localStorage.getItem('gridApp_state');
-      if (!saved) return;
+    /* Wołane z kilkudziesięciu miejsc, więc musi być tanie: odkłada zapis
+       i zrzut do historii na później, zamiast dobijać się do bazy przy
+       każdym naciśnięciu klawisza. */
+    let saveTimer = null;
+    function saveState() {
+      if (applyingState) return;
+      pushUndoSoon();
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(persistProject, 400);
+    }
+
+    let applyingState = false;
+
+    function applyState(s) {
+      if (!s) return;
+      applyingState = true;
       try {
-        const s = JSON.parse(saved);
         if (s.unit) {
           currentUnit = s.unit;
           document.querySelectorAll('#unitToggle .pill').forEach(p => {
@@ -1847,7 +1986,144 @@
           });
         }
         // mobilePanel state handled by scroll position
-      } catch(e) {}
+      } catch (e) {}
+      applyingState = false;
+      updateGuidesRow();
+      updateFormatPills();
+      recalcAndDraw();
+    }
+
+    /* ========================================
+       MAGAZYN PROJEKTÓW (IndexedDB)
+       localStorage nie udźwignie pliku kroju, a projekt ma go pamiętać,
+       więc cały rekord — stan siatki i bajty kroju — leży w IndexedDB.
+       W localStorage zostaje tylko identyfikator ostatnio otwartego.
+    ======================================== */
+    const DB_NAME = 'gridApp', DB_STORE = 'projects', LAST_KEY = 'gridApp_lastProject';
+
+    function openDb() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = () => {
+          if (!req.result.objectStoreNames.contains(DB_STORE)) {
+            req.result.createObjectStore(DB_STORE, { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function dbRun(mode, fn) {
+      return openDb().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(DB_STORE, mode);
+        const req = fn(tx.objectStore(DB_STORE));
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      }));
+    }
+
+    const dbAll = () => dbRun('readonly', st => st.getAll());
+    const dbGet = id => dbRun('readonly', st => st.get(id));
+    const dbPut = rec => dbRun('readwrite', st => st.put(rec));
+    const dbDel = id => dbRun('readwrite', st => st.delete(id));
+
+    /* ========================================
+       PROJEKTY
+    ======================================== */
+    let currentProject = null;
+    let savedAt = 0;
+
+    const newId = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+    function projectRecord(name) {
+      return { id: newId(), name, created: Date.now(), updated: Date.now(),
+               state: readState(), font: null };
+    }
+
+    async function persistProject() {
+      if (!currentProject) return;
+      currentProject.state = readState();
+      currentProject.updated = Date.now();
+      currentProject.font = currentFontBlob
+        ? { blob: currentFontBlob, label: currentFontLabel,
+            licensed: document.getElementById('fontLicensed').checked,
+            licensedAt: fontLicensedAt }
+        : null;
+      try {
+        await dbPut(currentProject);
+        savedAt = Date.now();
+        renderSavedStatus();
+      } catch (e) { /* prywatne okno albo brak miejsca — pracujemy dalej bez zapisu */ }
+    }
+
+    function renderSavedStatus() {
+      const el = document.getElementById('savedStatus');
+      if (!el || !savedAt) { if (el) el.textContent = ''; return; }
+      const min = Math.floor((Date.now() - savedAt) / 60000);
+      el.textContent = min < 1 ? t('saved_now')
+        : min < 60 ? t('saved_min').replace('{n}', String(min))
+        : t('saved_hour');
+    }
+    setInterval(renderSavedStatus, 30000);
+
+    async function openProject(id) {
+      const rec = await dbGet(id);
+      if (!rec) return;
+      currentProject = rec;
+      localStorage.setItem(LAST_KEY, id);
+
+      resetFontToBuiltIn();
+      if (rec.font && rec.font.blob) {
+        try {
+          await applyFontBuffer(await rec.font.blob.arrayBuffer(), rec.font.label);
+          currentFontBlob = rec.font.blob;
+          document.getElementById('fontLicensed').checked = !!rec.font.licensed;
+          document.getElementById('fontPick').disabled = !rec.font.licensed;
+          fontLicensedAt = rec.font.licensedAt || '';
+          const nameEl = document.getElementById('fontName');
+          nameEl.textContent = rec.font.label + (fontLicensedAt
+            ? ' · ' + fontLicensedAt.split('-').reverse().join('.') : '');
+          document.getElementById('fontClear').hidden = false;
+        } catch (e) { resetFontToBuiltIn(); }
+      }
+
+      applyState(rec.state);
+      savedAt = rec.updated;
+      renderProjectUi();
+      resetUndo();
+    }
+
+    function renderProjectUi() {
+      document.getElementById('projectName').textContent =
+        currentProject ? currentProject.name : t('proj_untitled');
+      renderSavedStatus();
+    }
+
+    async function renderProjectList() {
+      const list = await dbAll();
+      list.sort((a, b) => b.updated - a.updated);
+      const box = document.getElementById('projectList');
+      box.innerHTML = '';
+      for (const p of list) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = currentProject && p.id === currentProject.id ? 'is-on' : '';
+        b.innerHTML = '<span></span><small></small>';
+        b.firstChild.textContent = p.name;
+        b.lastChild.textContent = p.font ? t('proj_font') : '';
+        b.addEventListener('click', async () => { closeProjectMenu(); await openProject(p.id); });
+        box.appendChild(b);
+      }
+      document.getElementById('projDelete').disabled = list.length < 2;
+    }
+
+    async function createProject(name, state, font) {
+      const rec = projectRecord(name);
+      if (state) rec.state = state;
+      if (font) rec.font = font;
+      await dbPut(rec);
+      await openProject(rec.id);
     }
 
     /* ========================================
@@ -2028,10 +2304,226 @@
       });
     });
 
-    loadState();
-    if (applyShareUrl()) saveState();
-    updateFormatPills();
-    applyGroupState();
+    /* ========================================
+       HISTORIA ZMIAN
+       Zrzut stanu po każdej zmianie, z odłożeniem — inaczej wpisanie
+       „210" zrobiłoby trzy wpisy w historii zamiast jednego.
+    ======================================== */
+    const UNDO_LIMIT = 60;
+    let undoStack = [], redoStack = [], undoTimer = null, lastSnapshot = null;
+
+    function renderHistoryButtons() {
+      document.getElementById('undoBtn').disabled = undoStack.length < 2;
+      document.getElementById('redoBtn').disabled = redoStack.length === 0;
+    }
+
+    function resetUndo() {
+      undoStack = [JSON.stringify(readState())];
+      redoStack = [];
+      lastSnapshot = undoStack[0];
+      renderHistoryButtons();
+    }
+
+    function pushUndoSoon() {
+      clearTimeout(undoTimer);
+      undoTimer = setTimeout(() => {
+        const snap = JSON.stringify(readState());
+        if (snap === lastSnapshot) return;
+        undoStack.push(snap);
+        if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+        redoStack = [];
+        lastSnapshot = snap;
+        renderHistoryButtons();
+      }, 500);
+    }
+
+    function stepHistory(from, to) {
+      if (from.length < 2) return;
+      to.push(from.pop());
+      const snap = from[from.length - 1];
+      lastSnapshot = snap;
+      applyState(JSON.parse(snap));
+      renderHistoryButtons();
+      persistProject();
+    }
+
+    document.getElementById('undoBtn').addEventListener('click', () => stepHistory(undoStack, redoStack));
+    document.getElementById('redoBtn').addEventListener('click', () => {
+      if (!redoStack.length) return;
+      const snap = redoStack.pop();
+      undoStack.push(snap);
+      lastSnapshot = snap;
+      applyState(JSON.parse(snap));
+      renderHistoryButtons();
+      persistProject();
+    });
+    addEventListener('keydown', e => {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z') return;
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) return;
+      e.preventDefault();
+      if (e.shiftKey) document.getElementById('redoBtn').click();
+      else document.getElementById('undoBtn').click();
+    });
+
+    /* ========================================
+       MENU PROJEKTU
+    ======================================== */
+    const projectMenu = document.getElementById('projectMenu');
+    const projectBtn = document.getElementById('projectBtn');
+
+    function closeProjectMenu() {
+      projectMenu.hidden = true;
+      projectBtn.setAttribute('aria-expanded', 'false');
+    }
+    projectBtn.addEventListener('click', async e => {
+      e.stopPropagation();
+      if (projectMenu.hidden) {
+        await renderProjectList();
+        projectMenu.hidden = false;
+        projectBtn.setAttribute('aria-expanded', 'true');
+      } else closeProjectMenu();
+    });
+    addEventListener('click', e => {
+      if (!projectMenu.hidden && !projectMenu.contains(e.target)) closeProjectMenu();
+    });
+    addEventListener('keydown', e => { if (e.key === 'Escape') closeProjectMenu(); });
+
+    document.getElementById('projNew').addEventListener('click', async () => {
+      closeProjectMenu();
+      const name = (prompt(t('proj_name_prompt'), t('proj_untitled')) || '').trim();
+      if (!name) return;
+      resetFontToBuiltIn();
+      document.getElementById('fontLicensed').checked = false;
+      document.getElementById('fontPick').disabled = true;
+      fontLicensedAt = '';
+      document.getElementById('reset').click();
+      await createProject(name, readState(), null);
+    });
+
+    document.getElementById('projDup').addEventListener('click', async () => {
+      closeProjectMenu();
+      if (!currentProject) return;
+      const name = (prompt(t('proj_name_prompt'),
+        currentProject.name + ' — ' + t('proj_copy')) || '').trim();
+      if (!name) return;
+      await persistProject();
+      await createProject(name, JSON.parse(JSON.stringify(currentProject.state)), currentProject.font);
+    });
+
+    document.getElementById('projRename').addEventListener('click', async () => {
+      closeProjectMenu();
+      if (!currentProject) return;
+      const name = (prompt(t('proj_name_prompt'), currentProject.name) || '').trim();
+      if (!name) return;
+      currentProject.name = name;
+      await persistProject();
+      renderProjectUi();
+    });
+
+    document.getElementById('projDelete').addEventListener('click', async () => {
+      closeProjectMenu();
+      if (!currentProject) return;
+      const all = await dbAll();
+      if (all.length < 2) return; // ostatni projekt zostaje
+      if (!confirm(t('proj_delete_confirm').replace('{name}', currentProject.name))) return;
+      const gone = currentProject.id;
+      await dbDel(gone);
+      const rest = (await dbAll()).sort((a, b) => b.updated - a.updated);
+      await openProject(rest[0].id);
+    });
+
+    /* ——— Eksport i import: IndexedDB ginie razem z wyczyszczeniem danych
+       strony, więc projekt musi dać się wynieść do pliku. Krój idzie
+       w base64, razem z oświadczeniem i jego datą. ——— */
+    const bytesToB64 = buf => {
+      const b = new Uint8Array(buf);
+      let out = '';
+      for (let i = 0; i < b.length; i += 0x8000) out += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
+      return btoa(out);
+    };
+    const b64ToBytes = str => Uint8Array.from(atob(str), ch => ch.charCodeAt(0)).buffer;
+
+    document.getElementById('projExport').addEventListener('click', async () => {
+      closeProjectMenu();
+      await persistProject();
+      if (!currentProject) return;
+      const out = {
+        format: 'grid.app/project', version: 1,
+        name: currentProject.name, state: currentProject.state, font: null
+      };
+      if (currentProject.font && currentProject.font.blob) {
+        out.font = {
+          label: currentProject.font.label,
+          licensed: currentProject.font.licensed,
+          licensedAt: currentProject.font.licensedAt,
+          data: bytesToB64(await currentProject.font.blob.arrayBuffer())
+        };
+      }
+      const url = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)],
+        { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = currentProject.name.replace(/[^\p{L}\p{N}._-]+/gu, '-') + '.grid.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('projImport').addEventListener('click', () => {
+      closeProjectMenu();
+      document.getElementById('projFile').click();
+    });
+
+    document.getElementById('projFile').addEventListener('change', async e => {
+      const file = e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        if (data.format !== 'grid.app/project' || !data.state) throw new Error('zły format');
+        let font = null;
+        if (data.font && data.font.data) {
+          font = { blob: new Blob([b64ToBytes(data.font.data)]), label: data.font.label || '',
+                   licensed: !!data.font.licensed, licensedAt: data.font.licensedAt || '' };
+        }
+        await createProject((data.name || t('proj_untitled')).trim(), data.state, font);
+      } catch (err) {
+        alert(t('import_err'));
+      }
+    });
+
+    /* ========================================
+       START
+    ======================================== */
+    (async function boot() {
+      let list = [];
+      try { list = await dbAll(); } catch (e) { /* brak IndexedDB — dalej bez zapisu */ }
+
+      if (!list.length) {
+        // Pierwsze uruchomienie po aktualizacji: dotychczasowy stan
+        // z localStorage staje się pierwszym projektem, żeby nic nie zginęło.
+        let legacy = null;
+        try { legacy = JSON.parse(localStorage.getItem('gridApp_state') || 'null'); } catch (e) {}
+        const rec = projectRecord(t('proj_untitled'));
+        if (legacy) rec.state = legacy;
+        try { await dbPut(rec); } catch (e) {}
+        currentProject = rec;
+        localStorage.setItem(LAST_KEY, rec.id);
+        if (legacy) applyState(legacy);
+        savedAt = rec.updated;
+      } else {
+        const last = localStorage.getItem(LAST_KEY);
+        const pick = list.find(p => p.id === last) || list.sort((a, b) => b.updated - a.updated)[0];
+        await openProject(pick.id);
+      }
+
+      if (applyShareUrl()) { updateFormatPills(); recalcAndDraw(); persistProject(); }
+      updateFormatPills();
+      applyGroupState();
+      renderProjectUi();
+      resetUndo();
+    })();
 
     /* Wklejenie linku przy otwartej aplikacji zmienia sam fragment adresu,
        a to nie przeładowuje strony — bez tego nic by się nie wydarzyło. */
@@ -2150,6 +2642,8 @@
        razem z metrykami i nie dałoby się go już odpiąć. */
     let customFace = null;
     let customSeq = 0;
+    let currentFontBlob = null;   // plik kroju zapisywany razem z projektem
+    let currentFontLabel = '';
     const metricsCache = new Map();
 
     /* Metryki z pliku: sfnt (ttf/otf) trzyma wysokość X i wersalika w tablicy OS/2
@@ -2209,9 +2703,17 @@
     /* Krój użytkownika żyje tylko w tej sesji — plik nigdzie nie jest zapisywany. */
     async function loadFontFile(file) {
       const buf = await file.arrayBuffer();
-      const tables = readFontTables(buf);
       const base = file.name.replace(/\.[^.]+$/, '');
-      const label = (tables.family || base || 'Krój użytkownika').trim();
+      const res = await applyFontBuffer(buf, base);
+      currentFontBlob = new Blob([buf]);
+      return res;
+    }
+
+    /* Ta sama droga obsługuje plik wybrany przez użytkownika i krój
+       odtwarzany z zapisanego projektu. */
+    async function applyFontBuffer(buf, fallbackName) {
+      const tables = readFontTables(buf);
+      const label = (tables.family || fallbackName || 'Krój użytkownika').trim();
       const internal = 'kh-upload-' + (++customSeq);
 
       const face = new FontFace(internal, buf);
@@ -2232,6 +2734,7 @@
 
       gridFontFamily = internal;
       fontFromTables = fromTables;
+      currentFontLabel = label;
       return { family: label, fromTables };
     }
 
@@ -2840,15 +3343,21 @@
     const fontNote = document.getElementById('fontNote');
     let fontLicensedAt = '';
 
-    function resetFont() {
+    function resetFontToBuiltIn() {
       if (customFace) { document.fonts.delete(customFace); customFace = null; }
       gridFontFamily = GRID_FONT;
       fontFromTables = false;
+      currentFontBlob = null;
+      currentFontLabel = '';
       fontName.textContent = GRID_FONT;
       fontClear.hidden = true;
       fontNote.classList.remove('is-warn');
       fontNote.textContent = t('font_note');
       fontFile.value = '';
+    }
+
+    function resetFont() {
+      resetFontToBuiltIn();
       recalcAndDraw();
       updateGroupSummaries();
     }

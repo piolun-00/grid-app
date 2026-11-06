@@ -34,9 +34,12 @@ licencyjnych — dlatego pliki licencji leżą obok plików krojów.
 3. KROJE WGRYWANE PRZEZ UŻYTKOWNIKA
 
 Aplikacja pozwala wgrać własny krój, żeby odczytać jego wysokość X
-i wysokość wersalika. Plik kroju nie opuszcza przeglądarki: grid.app
-jest stroną statyczną, nie ma serwera i niczego nie wysyła. Wgrany
-krój nie trafia do tego repozytorium ani do żadnej kopii aplikacji.
+i wysokość wersalika. Plik kroju nie opuszcza urządzenia użytkownika:
+grid.app jest stroną statyczną, nie ma serwera i niczego nie wysyła.
+Krój zapisuje się lokalnie razem z projektem (IndexedDB przeglądarki)
+i trafia do pliku eksportu, jeśli użytkownik sam go wyeksportuje.
+Wgrany krój nie trafia do tego repozytorium ani do żadnej kopii
+aplikacji.
 
 Wgranie wymaga oświadczenia, że użytkownik posiada licencję na dany
 krój. Autor aplikacji nie weryfikuje licencji krojów i nie ponosi
