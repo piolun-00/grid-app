@@ -2967,6 +2967,102 @@
       return { family: label, fromTables };
     }
 
+
+    /* ========================================
+       KSZTAŁTY SIATKI — jedno źródło dla podglądu i eksportu
+       Podgląd i SVG rysowały to samo dwoma osobnymi kawałkami kodu.
+       computeGrid ujednolicił liczby, ale nie rysowanie, więc zostawało
+       ryzyko, że jedno zmieni się bez drugiego. Teraz kolejność i geometria
+       są jedne, a sterowniki tylko nakładają styl.
+    ======================================== */
+    const STYL_SIATKI = {
+      strona:     { obrys: '#000', tloCanvas: '#fff' },
+      margines:   { obrys: '#aaa' },
+      modul:      { wypelnienie: '#113BB7', krycie: 0.2 },
+      baseline:   { obrys: '#DE4343' },
+      pomocnicza: { obrys: '#B25C00' },
+      swiatlo:    { wypelnienie: '#DE4343', krycie: 0.2 },
+      kolumna:    { obrys: '#DE4343' }
+    };
+
+    function ksztaltyStrony(g, u) {
+      const { xOff, pw, ph, mLeft, mRight, mTop, mBottom } = u;
+      const aw = pw - (mLeft + mRight);
+      const ah = ph - (mTop + mBottom);
+      const lewa = xOff + mLeft;
+      const k = [];
+
+      k.push({ rola: 'strona', x: xOff, y: 0, w: pw, h: ph });
+      k.push({ rola: 'margines', x: lewa, y: mTop, w: aw, h: ah });
+
+      for (const idx of g.gapRowIndices) {
+        k.push({ rola: 'modul', x: lewa, y: mTop + g.rowY[idx], w: aw, h: g.rowH[idx] });
+      }
+      for (let i = 0; i <= g.nRows; i++) {
+        k.push({ rola: 'baseline', x1: lewa, x2: lewa + aw, y: mTop + g.rowY[i] });
+      }
+      if (u.pomocnicze) {
+        for (let i = 1; i <= g.nRows; i++) {
+          k.push({ rola: 'pomocnicza', x1: lewa, x2: lewa + aw, y: mTop + g.rowY[i] - g.firstGap });
+        }
+      }
+      for (let i = 1; i < g.nColumns; i++) {
+        k.push({ rola: 'swiatlo',
+                 x: lewa + i * g.columnWidth + (i - 1) * g.gutterSpacing,
+                 y: mTop, w: g.gutterSpacing, h: ah });
+      }
+      for (let i = 0; i <= g.nColumns; i++) {
+        const x = i === 0 ? lewa
+                : i === g.nColumns ? lewa + aw
+                : lewa + i * g.columnWidth + (i - 1) * g.gutterSpacing;
+        k.push({ rola: 'kolumna', x, y1: mTop, y2: mTop + ah });
+      }
+      return k;
+    }
+
+    function rysujKsztalty(ctx, scale, ksztalty) {
+      ctx.lineWidth = 1 / scale;
+      for (const f of ksztalty) {
+        const st = STYL_SIATKI[f.rola];
+        if (f.rola === 'strona') {
+          ctx.fillStyle = st.tloCanvas;
+          ctx.fillRect(f.x, f.y, f.w, f.h);
+        }
+        if (st.wypelnienie) {
+          ctx.globalAlpha = st.krycie;
+          ctx.fillStyle = st.wypelnienie;
+          ctx.fillRect(f.x, f.y, f.w, f.h);
+          ctx.globalAlpha = 1;
+        } else if (st.obrys && f.w !== undefined) {
+          ctx.strokeStyle = st.obrys;
+          ctx.strokeRect(f.x, f.y, f.w, f.h);
+        } else if (st.obrys) {
+          ctx.strokeStyle = st.obrys;
+          ctx.beginPath();
+          if (f.x1 !== undefined) { ctx.moveTo(f.x1, f.y); ctx.lineTo(f.x2, f.y); }
+          else { ctx.moveTo(f.x, f.y1); ctx.lineTo(f.x, f.y2); }
+          ctx.stroke();
+        }
+      }
+    }
+
+    function ksztaltyDoSvg(ksztalty) {
+      let s = '';
+      for (const f of ksztalty) {
+        const st = STYL_SIATKI[f.rola];
+        if (st.wypelnienie) {
+          s += `<rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" fill="${st.wypelnienie}" fill-opacity="${st.krycie}"/>`;
+        } else if (f.w !== undefined) {
+          s += `<rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" fill="none" stroke="${st.obrys}" stroke-width="0.25"/>`;
+        } else if (f.x1 !== undefined) {
+          s += `<line x1="${f.x1}" y1="${f.y}" x2="${f.x2}" y2="${f.y}" stroke="${st.obrys}" stroke-width="0.25"/>`;
+        } else {
+          s += `<line x1="${f.x}" y1="${f.y1}" x2="${f.x}" y2="${f.y2}" stroke="${st.obrys}" stroke-width="0.25"/>`;
+        }
+      }
+      return s;
+    }
+
     function readGridInputs() {
       const unit = currentUnit;
       const hModulesEl = document.getElementById('hModules');
@@ -3321,72 +3417,8 @@
       function drawPageGrid(ctx, scale, xOff, pw, ph, mLeft, mRight, mTop, mBottom) {
         const aw = pw - (mLeft + mRight);
         const ah = ph - (mTop + mBottom);
-
-        // Page background
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(xOff, 0, pw, ph);
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 1 / scale;
-        ctx.strokeRect(xOff, 0, pw, ph);
-
-        // Margin area
-        ctx.strokeStyle = '#aaa';
-        ctx.lineWidth = 1 / scale;
-        ctx.strokeRect(xOff + mLeft, mTop, aw, ah);
-
-        // Module gap rows
-        if (gapRowIndices.length > 0) {
-          ctx.fillStyle = 'rgba(17,59,183,0.2)';
-          for (const rowIdx of gapRowIndices) {
-            const yGap = mTop + rowY[rowIdx];
-            ctx.fillRect(xOff + mLeft, yGap, aw, rowH[rowIdx]);
-          }
-        }
-
-        // Baseline rows
-        ctx.strokeStyle = '#DE4343';
-        ctx.lineWidth = 1 / scale;
-        for (let i = 0; i <= nRows; i++) {
-          const y = mTop + rowY[i];
-          ctx.beginPath();
-          ctx.moveTo(xOff + mLeft, y);
-          ctx.lineTo(xOff + mLeft + aw, y);
-          ctx.stroke();
-        }
-
-        // Linie pomocnicze: wysokość X / wersalika nad każdą linią pisma
-        if (showGuides) {
-          ctx.strokeStyle = '#B25C00';
-          ctx.lineWidth = 1 / scale;
-          for (let i = 1; i <= nRows; i++) {
-            const y = mTop + rowY[i] - firstGap;
-            ctx.beginPath();
-            ctx.moveTo(xOff + mLeft, y);
-            ctx.lineTo(xOff + mLeft + aw, y);
-            ctx.stroke();
-          }
-        }
-
-        // Gutter fills
-        ctx.fillStyle = 'rgba(222,67,67,0.2)';
-        for (let i = 1; i < nColumns; i++) {
-          const gutterLeft = xOff + mLeft + i * columnWidth + (i - 1) * gutterSpacing;
-          ctx.fillRect(gutterLeft, mTop, gutterSpacing, ah);
-        }
-
-        // Column lines
-        ctx.strokeStyle = '#DE4343';
-        ctx.lineWidth = 1 / scale;
-        for (let i = 0; i <= nColumns; i++) {
-          let x;
-          if (i === 0) x = xOff + mLeft;
-          else if (i === nColumns) x = xOff + mLeft + aw;
-          else x = xOff + mLeft + i * columnWidth + (i - 1) * gutterSpacing;
-          ctx.beginPath();
-          ctx.moveTo(x, mTop);
-          ctx.lineTo(x, mTop + ah);
-          ctx.stroke();
-        }
+        rysujKsztalty(ctx, scale, ksztaltyStrony(g,
+          { xOff, pw, ph, mLeft, mRight, mTop, mBottom, pomocnicze: showGuides }));
 
         // Podgląd treści: lorem ipsum na liniach pisma, w wybranym kroju
         if (showSpecimen && fontSizeConverted > 0) {
@@ -3492,44 +3524,8 @@
 
       // Helper: generate SVG elements for one page at xOffset
       function svgPageGrid(xOff, pw, ph, mLeft, mRight, mTop, mBottom) {
-        const aw = pw - (mLeft + mRight);
-        const ah = ph - (mTop + mBottom);
-        let s = '';
-        s += `<rect x="${xOff}" y="0" width="${pw}" height="${ph}" fill="none" stroke="#000" stroke-width="0.25"/>`;
-        s += `<rect x="${xOff + mLeft}" y="${mTop}" width="${aw}" height="${ah}" fill="none" stroke="#aaa" stroke-width="0.25"/>`;
-
-        if (gapRowIndices.length > 0) {
-          for (const rowIdx of gapRowIndices) {
-            const yGap = mTop + rowY[rowIdx];
-            s += `<rect x="${xOff + mLeft}" y="${yGap}" width="${aw}" height="${rowH[rowIdx]}" fill="#113BB7" fill-opacity="0.2"/>`;
-          }
-        }
-
-        for (let i = 0; i <= nRows; i++) {
-          const y = mTop + rowY[i];
-          s += `<line x1="${xOff + mLeft}" y1="${y}" x2="${xOff + mLeft + aw}" y2="${y}" stroke="#DE4343" stroke-width="0.25"/>`;
-        }
-
-        if (showGuides) {
-          for (let i = 1; i <= nRows; i++) {
-            const y = mTop + rowY[i] - firstGap;
-            s += `<line x1="${xOff + mLeft}" y1="${y}" x2="${xOff + mLeft + aw}" y2="${y}" stroke="#B25C00" stroke-width="0.25"/>`;
-          }
-        }
-
-        for (let i = 1; i < nColumns; i++) {
-          const gutterLeft = xOff + mLeft + i * columnWidth + (i - 1) * gutterSpacing;
-          s += `<rect x="${gutterLeft}" y="${mTop}" width="${gutterSpacing}" height="${ah}" fill="#DE4343" fill-opacity="0.2"/>`;
-        }
-
-        for (let i = 0; i <= nColumns; i++) {
-          let x;
-          if (i === 0) x = xOff + mLeft;
-          else if (i === nColumns) x = xOff + mLeft + aw;
-          else x = xOff + mLeft + i * columnWidth + (i - 1) * gutterSpacing;
-          s += `<line x1="${x}" y1="${mTop}" x2="${x}" y2="${mTop + ah}" stroke="#DE4343" stroke-width="0.25"/>`;
-        }
-        return s;
+        return ksztaltyDoSvg(ksztaltyStrony(g,
+          { xOff, pw, ph, mLeft, mRight, mTop, mBottom, pomocnicze: showGuides }));
       }
 
       const totalW = facingPages ? pageWidth * 2 : pageWidth;
@@ -3562,7 +3558,7 @@
        porównanie z wersją wbudowaną w tę kopię, pasek z prośbą
        o odświeżenie. Bez odpytywania, gdy pasek już wisi.
     ======================================== */
-    const APP_VERSION = '2026.11.06.25';
+    const APP_VERSION = '2026.11.06.26';
 
     document.getElementById('topbarVersion').textContent = 'v' + APP_VERSION;
 

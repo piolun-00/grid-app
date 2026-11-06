@@ -34,9 +34,10 @@ nie z przypuszczeń — liczby są zmierzone.
       trzymane w pamięci podręcznej; łamanie to teraz arytmetyka. Zmierzone
       przy 85 wierszach i 5 kolumnach: 64 pomiary przy pierwszym rysowaniu
       i 0 przy kolejnych, zamiast ponad 850.
-- [ ] **Dwa renderery tej samej geometrii.** `drawPageGrid` (canvas) i
-      `svgPageGrid` (SVG) rysują to samo osobnym kodem. `computeGrid` ujednolicił
-      liczby, ale nie rysowanie — tam zostaje ryzyko rozjazdu podglądu z eksportem.
+- [x] **Dwa renderery tej samej geometrii.** Jedna funkcja `ksztaltyStrony`
+      zwraca listę kształtów z rolami; canvas i SVG tylko nakładają styl.
+      Kolejność i geometria są wspólne, więc jedno nie zmieni się bez drugiego.
+      Eksport po refaktorze bajt w bajt identyczny (wzorcowy skrót testów).
 - [ ] **Jeden plik, 3630 linii, 144 KB.** Działa i nie wymaga budowania; rozbicie
       to decyzja produktowa, nie techniczna.
 
