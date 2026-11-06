@@ -30,9 +30,10 @@ nie z przypuszczeń — liczby są zmierzone.
 - [x] **Przeliczniki jednostek.** 0,3528 i 1,3333 zastąpione wartościami
       z definicji (25,4/72, 96/72, 96/25,4). Błąd wynosił +63, −25 i −88 ppm;
       A4 w pikselach pokazywało 793,63 zamiast 793,70.
-- [ ] **Podgląd tekstu.** Łamanie woła `measureText` dla każdego wiersza w każdej
-      kolumnie — przy 104 wierszach i 5 kolumnach tysiące pomiarów na jedno
-      przerysowanie. Szerokości znaków da się policzyć raz na krój i stopień.
+- [x] **Podgląd tekstu.** Szerokości słów mierzone raz na krój i stopień,
+      trzymane w pamięci podręcznej; łamanie to teraz arytmetyka. Zmierzone
+      przy 85 wierszach i 5 kolumnach: 64 pomiary przy pierwszym rysowaniu
+      i 0 przy kolejnych, zamiast ponad 850.
 - [ ] **Dwa renderery tej samej geometrii.** `drawPageGrid` (canvas) i
       `svgPageGrid` (SVG) rysują to samo osobnym kodem. `computeGrid` ujednolicił
       liczby, ale nie rysowanie — tam zostaje ryzyko rozjazdu podglądu z eksportem.
