@@ -69,6 +69,18 @@ nie z przypuszczeń — liczby są zmierzone.
       czegokolwiek, a siatka bazowa to tam dokładnie te same wielkości,
       które aplikacja liczy.
 
+## Podgląd składu (do przemyślenia)
+
+- [ ] **Ustawienia składu w podglądzie:** język (polski / angielski),
+      przenoszenie wyrazów (tak / nie), skład chorągiewkowy / justowany.
+      Powód ten sam co przy diakrytykach — podgląd ma mówić prawdę o tym,
+      czy kolumna da się złożyć. Justunek bez przenoszenia przy długich
+      polskich słowach daje rzeki i dziury, i lepiej to zobaczyć przed
+      wyborem szerokości łamu. Canvas nie ma ani justunku, ani przenoszenia,
+      więc światło międzywyrazowe trzeba rozdzielać samemu, a przenoszenie
+      wymaga wzorców. Tani pierwszy krok: chorągiewka/justunek i teksty
+      wzorcowe w obu językach.
+
 ## Dostępność i UX
 
 - [ ] **Canvas bez tekstowego odpowiednika** — dla czytnika ekranu podgląd jest
