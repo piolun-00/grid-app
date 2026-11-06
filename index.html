@@ -244,6 +244,10 @@
       display: flex;
       gap: var(--gap-xs);
     }
+    .pill-group--wrap {
+      flex-wrap: wrap;
+      row-gap: var(--gap-xs);
+    }
     .pill {
       min-width: var(--size-lg);
       height: var(--size-xs);
@@ -891,6 +895,18 @@
           </div>
         </div>
         <div class="form-group">
+          <label class="form-label" data-i18n="format_label">Format strony:</label>
+          <div class="pill-group pill-group--wrap" id="formatToggle">
+            <button type="button" class="pill" data-w="297" data-h="420">A3</button>
+            <button type="button" class="pill" data-w="210" data-h="297">A4</button>
+            <button type="button" class="pill" data-w="148" data-h="210">A5</button>
+            <button type="button" class="pill" data-w="105" data-h="148">A6</button>
+            <button type="button" class="pill" data-w="176" data-h="250">B5</button>
+            <button type="button" class="pill" data-w="210" data-h="210" data-i18n="format_square">Kwadrat</button>
+          </div>
+        </div>
+
+        <div class="form-group">
           <label class="form-label" data-i18n="page_width">Szerokość strony:</label>
           <div class="form-field">
             <input class="form-input decimal-input" id="pageWidth" type="text" value="210.00" inputmode="decimal" data-min="0" data-decimals="2">
@@ -1031,6 +1047,10 @@
           <span data-i18n="btn_draw">Rysuj</span>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12.765 21C11.955 21 11.2725 20.7225 10.7175 20.1675C10.1625 19.6125 9.885 18.945 9.885 18.165C9.885 17.025 10.3462 15.9937 11.2687 15.0713C12.1912 14.1488 13.3425 13.575 14.7225 13.35C14.6775 12.81 14.5425 12.4012 14.3175 12.1237C14.0925 11.8462 13.785 11.7075 13.395 11.7075C12.945 11.7075 12.4575 11.895 11.9325 12.27C11.4075 12.645 10.785 13.26 10.065 14.115C8.895 15.51 8.03625 16.4175 7.48875 16.8375C6.94125 17.2575 6.3525 17.4675 5.7225 17.4675C4.9575 17.4675 4.3125 17.1825 3.7875 16.6125C3.2625 16.0425 3 15.3525 3 14.5425C3 13.7325 3.17625 12.9037 3.52875 12.0562C3.88125 11.2087 4.4775 10.1925 5.3175 9.0075C5.6025 8.6175 5.8125 8.2875 5.9475 8.0175C6.0825 7.7475 6.15 7.53 6.15 7.365C6.15 7.26 6.13125 7.18125 6.09375 7.12875C6.05625 7.07625 6 7.05 5.925 7.05C5.775 7.05 5.5875 7.14375 5.3625 7.33125C5.1375 7.51875 4.875 7.8075 4.575 8.1975L3 6.6C3.48 6.015 3.9675 5.56875 4.4625 5.26125C4.9575 4.95375 5.445 4.8 5.925 4.8C6.615 4.8 7.2 5.04 7.68 5.52C8.16 6 8.4 6.6 8.4 7.32C8.4 7.755 8.2875 8.235 8.0625 8.76C7.8375 9.285 7.4625 9.915 6.9375 10.65C6.3675 11.46 5.94375 12.1725 5.66625 12.7875C5.38875 13.4025 5.25 13.9425 5.25 14.4075C5.25 14.6625 5.29125 14.8613 5.37375 15.0038C5.45625 15.1463 5.5725 15.2175 5.7225 15.2175C5.8725 15.2175 6.00375 15.1762 6.11625 15.0937C6.22875 15.0112 6.435 14.8125 6.735 14.4975C6.93 14.2875 7.1625 14.0288 7.4325 13.7213C7.7025 13.4138 8.0325 13.035 8.4225 12.585C9.3675 11.46 10.2225 10.6575 10.9875 10.1775C11.7525 9.6975 12.555 9.4575 13.395 9.4575C14.4 9.4575 15.225 9.795 15.87 10.47C16.515 11.145 16.8825 12.0675 16.9725 13.2375H19.2V15.4875H16.9725C16.8525 17.1675 16.4137 18.5062 15.6562 19.5037C14.8987 20.5012 13.935 21 12.765 21ZM12.81 18.75C13.29 18.75 13.695 18.4762 14.025 17.9287C14.355 17.3812 14.58 16.62 14.7 15.645C14.01 15.81 13.41 16.1362 12.9 16.6237C12.39 17.1112 12.135 17.595 12.135 18.075C12.135 18.285 12.195 18.45 12.315 18.57C12.435 18.69 12.6 18.75 12.81 18.75ZM16.3875 7.6125C15.8625 7.0875 15.6 6.45 15.6 5.7C15.6 4.95 15.8625 4.3125 16.3875 3.7875C16.9125 3.2625 17.55 3 18.3 3C19.05 3 19.6875 3.2625 20.2125 3.7875C20.7375 4.3125 21 4.95 21 5.7C21 6.45 20.7375 7.0875 20.2125 7.6125C19.6875 8.1375 19.05 8.4 18.3 8.4C17.55 8.4 16.9125 8.1375 16.3875 7.6125Z" fill="currentColor"/></svg>
         </button>
+        <button type="button" class="btn btn--small" id="shareLink">
+          <span data-i18n="btn_share">Kopiuj link</span>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M11 17H7C5.61667 17 4.4375 16.5125 3.4625 15.5375C2.4875 14.5625 2 13.3833 2 12C2 10.6167 2.4875 9.4375 3.4625 8.4625C4.4375 7.4875 5.61667 7 7 7H11V9H7C6.16667 9 5.45833 9.29167 4.875 9.875C4.29167 10.4583 4 11.1667 4 12C4 12.8333 4.29167 13.5417 4.875 14.125C5.45833 14.7083 6.16667 15 7 15H11V17ZM8 13V11H16V13H8ZM13 17V15H17C17.8333 15 18.5417 14.7083 19.125 14.125C19.7083 13.5417 20 12.8333 20 12C20 11.1667 19.7083 10.4583 19.125 9.875C18.5417 9.29167 17.8333 9 17 9H13V7H17C18.3833 7 19.5625 7.4875 20.5375 8.4625C21.5125 9.4375 22 10.6167 22 12C22 13.3833 21.5125 14.5625 20.5375 15.5375C19.5625 16.5125 18.3833 17 17 17H13Z" fill="currentColor"/></svg>
+        </button>
         <button type="button" class="btn btn--small" id="reset">
           <span data-i18n="btn_reset">Resetuj</span>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M11.0563 20.9938C9.08958 20.7605 7.45833 19.9084 6.1625 18.4376C4.86667 16.9668 4.21875 15.2397 4.21875 13.2563C4.21875 12.1563 4.43958 11.1084 4.88125 10.1126C5.32292 9.11677 5.95208 8.25635 6.76875 7.53135L8.10625 8.86885C7.44792 9.41885 6.94792 10.073 6.60625 10.8313C6.26458 11.5897 6.09375 12.398 6.09375 13.2563C6.09375 14.7147 6.55833 15.998 7.4875 17.1063C8.41667 18.2147 9.60625 18.8855 11.0563 19.1188V20.9938ZM12.9312 20.9938V19.1188C14.3729 18.8688 15.5625 18.1938 16.5 17.0938C17.4375 15.9938 17.9062 14.7147 17.9062 13.2563C17.9062 11.6147 17.3312 10.2188 16.1812 9.06885C15.0312 7.91885 13.6354 7.34385 11.9938 7.34385H11.8688L13.0187 8.49385L11.7062 9.80635L8.30625 6.40635L11.7062 3.00635L13.0187 4.31885L11.8688 5.46885H11.9938C14.1604 5.46885 16 6.2251 17.5125 7.7376C19.025 9.2501 19.7812 11.0897 19.7812 13.2563C19.7812 15.2313 19.1312 16.9543 17.8312 18.4251C16.5312 19.8959 14.8979 20.7522 12.9312 20.9938Z" fill="currentColor"/></svg>
@@ -1123,6 +1143,10 @@
         show_guides: 'Pokaż linie pomocnicze',
         show_specimen: 'Pokaż podgląd tekstu',
         sec_document: 'Dokument',
+        format_label: 'Format strony:',
+        format_square: 'Kwadrat',
+        btn_share: 'Kopiuj link',
+        btn_shared: 'Skopiowano',
         sec_type: 'Typografia',
         sec_grid: 'Siatka',
         sec_preview: 'Podgląd',
@@ -1197,6 +1221,10 @@
         show_guides: 'Show guide lines',
         show_specimen: 'Show text preview',
         sec_document: 'Document',
+        format_label: 'Page format:',
+        format_square: 'Square',
+        btn_share: 'Copy link',
+        btn_shared: 'Copied',
         sec_type: 'Typography',
         sec_grid: 'Grid',
         sec_preview: 'Preview',
@@ -1558,7 +1586,112 @@
       } catch(e) {}
     }
 
+    /* ========================================
+       PRESETY FORMATU
+       Wartości w mm; przy jednostce px przeliczane tym samym
+       współczynnikiem co reszta aplikacji (pt -> jednostka).
+    ======================================== */
+    const MM_TO_PX = 1.3333 / 0.3528;
+
+    function formatToUnit(mm) {
+      return currentUnit === 'mm' ? mm : mm * MM_TO_PX;
+    }
+
+    function updateFormatPills() {
+      const w = readDecimalInput('pageWidth', 0);
+      const h = readDecimalInput('pageHeight', 0);
+      document.querySelectorAll('#formatToggle .pill').forEach(p => {
+        const pw = formatToUnit(parseFloat(p.dataset.w));
+        const ph = formatToUnit(parseFloat(p.dataset.h));
+        p.classList.toggle('is-active', Math.abs(pw - w) < 0.01 && Math.abs(ph - h) < 0.01);
+      });
+    }
+
+    document.querySelectorAll('#formatToggle .pill').forEach(p => {
+      p.addEventListener('click', () => {
+        document.getElementById('pageWidth').value = formatToUnit(parseFloat(p.dataset.w)).toFixed(2);
+        document.getElementById('pageHeight').value = formatToUnit(parseFloat(p.dataset.h)).toFixed(2);
+        updateFormatPills();
+        recalcAndDraw();
+        saveState();
+      });
+    });
+
+    /* ========================================
+       LINK Z PARAMETRAMI SIATKI
+       Cały stan siatki to kilkanaście liczb, więc mieści się w adresie.
+       Link wygrywa z zapisanym stanem — ktoś go przysłał właśnie po to.
+    ======================================== */
+    const SHARE_FIELDS = {
+      w: 'pageWidth', h: 'pageHeight', mt: 'marginTop', mb: 'marginBottom',
+      ml: 'marginLeft', mr: 'marginRight', fs: 'fontSize', lh: 'lineHeight',
+      mod: 'hModules', col: 'columns', g: 'gutterWidth'
+    };
+
+    function buildShareUrl() {
+      const p = new URLSearchParams();
+      for (const [key, id] of Object.entries(SHARE_FIELDS)) {
+        const v = document.getElementById(id).value.trim();
+        if (v !== '') p.set(key, v);
+      }
+      p.set('u', currentUnit);
+      p.set('fh', document.getElementById('firstHeightMode').value);
+      if (facingPages) p.set('spread', '1');
+      return location.origin + location.pathname + '#' + p.toString();
+    }
+
+    function applyShareUrl() {
+      if (!location.hash || location.hash.length < 2) return false;
+      const p = new URLSearchParams(location.hash.slice(1));
+      if ([...p.keys()].length === 0) return false;
+
+      if (p.get('u') === 'mm' || p.get('u') === 'px') {
+        currentUnit = p.get('u');
+        document.querySelectorAll('#unitToggle .pill').forEach(el => {
+          el.classList.toggle('is-active', el.dataset.value === currentUnit);
+        });
+      }
+      for (const [key, id] of Object.entries(SHARE_FIELDS)) {
+        if (p.has(key)) document.getElementById(id).value = p.get(key);
+      }
+      const fh = p.get('fh');
+      if (fh === 'leading' || fh === 'xheight' || fh === 'capheight') {
+        document.getElementById('firstHeightMode').value = fh;
+      }
+      facingPages = p.get('spread') === '1';
+      document.querySelectorAll('#facingToggle .pill').forEach(el => {
+        el.classList.toggle('is-active', el.dataset.value === (facingPages ? 'spread' : 'single'));
+      });
+      updateMarginLabels();
+      return true;
+    }
+
+    document.getElementById('shareLink').addEventListener('click', async () => {
+      const btn = document.getElementById('shareLink');
+      const label = btn.querySelector('span');
+      try {
+        await navigator.clipboard.writeText(buildShareUrl());
+        label.textContent = t('btn_shared');
+        setTimeout(() => { label.textContent = t('btn_share'); }, 2000);
+      } catch (e) {
+        // Schowek bywa niedostępny poza https — wtedy przynajmniej pokaż link w pasku adresu.
+        location.hash = buildShareUrl().split('#')[1];
+      }
+    });
+
     loadState();
+    if (applyShareUrl()) saveState();
+    updateFormatPills();
+
+    /* Wklejenie linku przy otwartej aplikacji zmienia sam fragment adresu,
+       a to nie przeładowuje strony — bez tego nic by się nie wydarzyło. */
+    addEventListener('hashchange', () => {
+      if (applyShareUrl()) {
+        updateFormatPills();
+        recalcAndDraw();
+        saveState();
+      }
+    });
 
     /* ========================================
        MOBILE PANEL TOGGLE (slider)
@@ -2174,6 +2307,7 @@
 
       ctx.restore();
       updateCtrlBtnStates();
+      updateFormatPills();
       saveState();
     }
 
