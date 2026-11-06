@@ -338,6 +338,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    .saved.is-warn { color: #B25C00; }
     .saved {
       color: var(--text-muted);
       font-size: var(--font-small);
@@ -1601,6 +1602,7 @@
         proj_name_prompt: 'Nazwa projektu:',
         proj_delete_confirm: 'Usunąć projekt „{name}"? Tego nie da się cofnąć.',
         proj_font: 'z krojem',
+        saved_fail: 'NIE ZAPISANO — przeglądarka nie pozwala zapisać projektu',
         saved_now: 'zapisano teraz',
         saved_min: 'zapisano {n} min temu',
         saved_hour: 'zapisano ponad godzinę temu',
@@ -1700,6 +1702,7 @@
         proj_name_prompt: 'Project name:',
         proj_delete_confirm: 'Delete project "{name}"? This cannot be undone.',
         proj_font: 'with font',
+        saved_fail: 'NOT SAVED — the browser is blocking storage',
         saved_now: 'saved just now',
         saved_min: 'saved {n} min ago',
         saved_hour: 'saved over an hour ago',
@@ -2232,14 +2235,24 @@
         : null;
       try {
         await dbPut(currentProject);
+        saveFailed = false;
         savedAt = Date.now();
-        renderSavedStatus();
-      } catch (e) { /* prywatne okno albo brak miejsca — pracujemy dalej bez zapisu */ }
+      } catch (e) {
+        // Okno prywatne albo brak miejsca. Aplikacja działa dalej, ale
+        // użytkownik musi wiedzieć, że jego praca nigdzie nie leci.
+        saveFailed = true;
+      }
+      renderSavedStatus();
     }
+
+    let saveFailed = false;
 
     function renderSavedStatus() {
       const el = document.getElementById('savedStatus');
-      if (!el || !savedAt) { if (el) el.textContent = ''; return; }
+      if (!el) return;
+      el.classList.toggle('is-warn', saveFailed);
+      if (saveFailed) { el.textContent = t('saved_fail'); return; }
+      if (!savedAt) { el.textContent = ''; return; }
       const min = Math.floor((Date.now() - savedAt) / 60000);
       el.textContent = min < 1 ? t('saved_now')
         : min < 60 ? t('saved_min').replace('{n}', String(min))
@@ -3447,7 +3460,7 @@
        porównanie z wersją wbudowaną w tę kopię, pasek z prośbą
        o odświeżenie. Bez odpytywania, gdy pasek już wisi.
     ======================================== */
-    const APP_VERSION = '2026.11.06.18';
+    const APP_VERSION = '2026.11.06.19';
 
     document.getElementById('topbarVersion').textContent = 'v' + APP_VERSION;
 
