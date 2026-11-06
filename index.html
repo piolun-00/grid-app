@@ -150,11 +150,111 @@
       body.has-banner .app { height: auto; min-height: calc(100svh - var(--banner-h, 44px)); }
     }
 
+    /* ===== PASEK GÓRNY ===== */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: var(--layout-md);
+      height: 52px;
+      flex: none;
+      padding: 0 var(--layout-md);
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-mid);
+    }
+    .topbar__logo {
+      color: var(--text-primary);
+      display: flex;
+      flex: none;
+      text-decoration: none;
+    }
+    .topbar__logo svg { height: 28px; width: auto; }
+    .topbar__name {
+      font-weight: 700;
+      letter-spacing: .02em;
+      white-space: nowrap;
+    }
+    .topbar__name span { font-weight: 500; color: var(--text-muted); }
+    .topbar__name small {
+      font-weight: 500;
+      color: var(--text-muted);
+      font-size: 11px;
+      margin-left: var(--gap-xs);
+      font-variant-numeric: tabular-nums;
+    }
+    .topbar__actions {
+      display: flex;
+      align-items: center;
+      gap: var(--gap-sm);
+      margin-left: auto;
+    }
+
     /* ===== LAYOUT ===== */
     .app {
       display: flex;
+      flex-direction: column;
       height: 100svh;
       position: relative;
+    }
+    .app-body {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ===== ROZDZIAŁ (zwijana sekcja) ===== */
+    .group {
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-card);
+      background: var(--bg-panel);
+    }
+    .group.is-open { border-color: var(--border-lighter); }
+    .group__head {
+      width: 100%;
+      display: flex;
+      align-items: baseline;
+      gap: var(--gap-sm);
+      padding: var(--pad-v-xl);
+      border: 0;
+      background: none;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      min-width: 0;
+    }
+    .group__chev {
+      width: 10px;
+      flex: none;
+      color: var(--text-muted);
+      transition: transform 0.15s ease-out;
+      align-self: center;
+    }
+    .group.is-open .group__chev { transform: rotate(90deg); }
+    .group__title { font-weight: 500; flex: none; }
+    .group__summary {
+      margin-left: auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text-muted);
+      font-size: var(--font-small);
+      font-variant-numeric: tabular-nums;
+    }
+    .group.is-open .group__summary { visibility: hidden; }
+    .group__body {
+      display: none;
+      padding: 2px var(--pad-v-xl) 16px;
+    }
+    .group.is-open .group__body { display: block; }
+
+    /* Blok wtrącony — jak .sub w edytorze */
+    .sub {
+      display: grid;
+      gap: var(--gap-sm);
+      padding: var(--pad-v-xl);
+      background: var(--bg-soft);
+      border-radius: var(--radius-card);
     }
 
     /* ===== PANEL PARAMETRY ===== */
@@ -380,20 +480,6 @@
       height: 10px;
     }
 
-    /* ===== NAGŁÓWEK SEKCJI ===== */
-    .group__sub {
-      font-weight: 500;
-      font-size: var(--font-body);
-      margin-top: var(--gap-sm);
-      padding-top: 14px;
-      border-top: 1px solid var(--border-mid);
-    }
-    .panel-params > .group__sub:first-of-type {
-      margin-top: 0;
-      padding-top: 0;
-      border-top: 0;
-    }
-
     /* ===== LISTA ROZWIJANA ===== */
     .form-select {
       width: 100%;
@@ -427,12 +513,27 @@
       cursor: pointer;
     }
     .check input[type=checkbox] {
+      appearance: none;
+      -webkit-appearance: none;
       flex: none;
       width: 14px;
       height: 14px;
       margin: calc((1lh - 14px) / 2) 0 0;
-      accent-color: var(--accent);
+      border: 1px solid var(--border-lighter);
+      border-radius: var(--radius-button);
+      background: var(--bg-panel) no-repeat center;
       cursor: pointer;
+      transition: background-color 0.15s ease-out, border-color 0.15s ease-out;
+    }
+    .check:hover input[type=checkbox]:not(:disabled) { border-color: var(--text-primary); }
+    .check input[type=checkbox]:checked {
+      background-color: var(--accent);
+      border-color: var(--accent);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M2.5 6.2L4.8 8.5L9.5 3.8' stroke='white' stroke-width='1.6' stroke-linecap='square'/%3E%3C/svg%3E");
+    }
+    .check input[type=checkbox]:focus-visible {
+      outline: 2px solid var(--border-focus-light);
+      outline-offset: 1px;
     }
     .check.is-disabled { opacity: 0.35; pointer-events: none; }
 
@@ -738,15 +839,14 @@
     /* ===== RESPONSIVE: SHARED (≤1024px) ===== */
     @media (max-width: 1024px) {
       html, body { overflow: visible; height: auto; }
-      .app {
+      .app-body {
         flex-direction: column;
+      }
+      .app {
         height: auto;
         min-height: 100svh;
       }
-      .app-header {
-        display: flex;
-        order: 1;
-      }
+
       .panel-preview {
         order: 2;
         flex: none;
@@ -796,7 +896,6 @@
 
     /* ===== RESPONSIVE: TABLET (768–1024px) ===== */
     @media (max-width: 1024px) and (min-width: 768px) {
-      .app-header { padding: 24px 20px 0; }
       .form-fields-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -814,7 +913,6 @@
 
     /* ===== RESPONSIVE: MOBILE (≤767px) ===== */
     @media (max-width: 767px) {
-      .app-header { padding: 24px 16px 0; }
       .panel-preview {
         margin: 20px 16px 0;
       }
@@ -861,8 +959,8 @@
     <button type="button" class="btn banner-btn" id="updateReload" data-i18n="update_btn">Odśwież</button>
   </div>
   <div class="app">
-    <!-- ===== HEADER (tablet/mobile) ===== -->
-    <header class="app-header">
+    <!-- ===== PASEK GÓRNY ===== -->
+    <header class="topbar">
       <a href="https://khorei.com" target="_blank" rel="noopener noreferrer" class="header-logo">
         <svg viewBox="0 0 84 38" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M0 0.12194H1.06718V2.74414H1.13687L3.95508 0.12194H5.2052V0.252615L2.02546 3.18408L5.29232 6.26365V6.39432H3.97251L1.13687 3.70678H1.06718V6.39432H0V0.12194Z" fill="currentColor"/>
@@ -876,11 +974,16 @@
           <path d="M80.4576 31.0967C81.5858 31.0967 82.4352 31.6064 82.4352 32.6692C82.4352 33.6667 81.7861 33.9977 81.429 34.0761V34.1458C81.8297 34.2373 82.5702 34.5553 82.5702 35.6399C82.5702 36.7985 81.6555 37.3691 80.5055 37.3691H77.5958V31.0967H80.4576ZM78.6543 36.4849H80.3618C81.0326 36.4849 81.5161 36.2366 81.5161 35.5571C81.5161 34.8776 81.0326 34.6337 80.3618 34.6337H78.6543V36.4849ZM78.6543 33.7494H80.3095C80.9411 33.7494 81.4115 33.5186 81.4115 32.8652C81.4115 32.2118 80.9411 31.981 80.3095 31.981H78.6543V33.7494Z" fill="currentColor"/>
         </svg>
       </a>
-      <div class="pill-group" id="langToggleHeader">
-        <button type="button" class="pill is-active" data-value="pl">Pl</button>
-        <button type="button" class="pill" data-value="en">En</button>
+      <span class="topbar__name">grid<span>.app</span><small id="topbarVersion"></small></span>
+      <div class="topbar__actions">
+        <div class="pill-group" id="langToggleHeader">
+          <button type="button" class="pill is-active" data-value="pl">Pl</button>
+          <button type="button" class="pill" data-value="en">En</button>
+        </div>
       </div>
     </header>
+
+    <div class="app-body">
 
     <!-- ===== PANELS WRAPPER ===== -->
     <div class="panels-wrapper" id="panelsWrapper">
@@ -890,179 +993,209 @@
     <div class="panel-params" id="panelParams">
       <div class="panel-title" data-i18n="params_title">Parametry:</div>
 
-      <div class="group__sub" data-i18n="sec_document">Dokument</div>
-      <div class="form-fields-grid">
-        <div class="unit-control">
-          <span class="unit-control-label" data-i18n="unit_label">Jednostka:</span>
-          <div class="pill-group" id="unitToggle">
-            <button type="button" class="pill is-active" data-value="mm">mm</button>
-            <button type="button" class="pill" data-value="px">px</button>
+      <div class="group is-open" data-group="document">
+        <button type="button" class="group__head">
+          <svg class="group__chev" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 1.5L6.5 5L3 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
+          <span class="group__title" data-i18n="sec_document">Dokument</span>
+          <span class="group__summary" id="sum-document"></span>
+        </button>
+        <div class="group__body">
+        <div class="form-fields-grid">
+          <div class="unit-control">
+            <span class="unit-control-label" data-i18n="unit_label">Jednostka:</span>
+            <div class="pill-group" id="unitToggle">
+              <button type="button" class="pill is-active" data-value="mm">mm</button>
+              <button type="button" class="pill" data-value="px">px</button>
+            </div>
           </div>
-        </div>
-        <div class="unit-control">
-          <span class="unit-control-label" data-i18n="facing_label">Str. Widz:</span>
-          <div class="pill-group" id="facingToggle">
-            <button type="button" class="pill is-active" data-value="single">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 14H9V16H12H15V14H12Z" fill="currentColor"/><path d="M12 8H9V10H12H15V8H12Z" fill="currentColor"/><path d="M12 11H9V13H12H15V11H12Z" fill="currentColor"/><path d="M12 4H7C6.45 4 5.97917 4.19583 5.5875 4.5875C5.19583 4.97917 5 5.45 5 6V18C5 18.55 5.19583 19.0208 5.5875 19.4125C5.97917 19.8042 6.45 20 7 20H12H17C17.55 20 18.0208 19.8042 18.4125 19.4125C18.8042 19.0208 19 18.55 19 18V6C19 5.45 18.8042 4.97917 18.4125 4.5875C18.0208 4.19583 17.55 4 17 4H12ZM7 6H12H17V18H12H7V6Z" fill="currentColor"/></svg>
-            </button>
-            <button type="button" class="pill" data-value="spread">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 20C3.45 20 2.97917 19.8042 2.5875 19.4125C2.19583 19.0208 2 18.55 2 18V6C2 5.45 2.19583 4.97917 2.5875 4.5875C2.97917 4.19583 3.45 4 4 4H20C20.55 4 21.0208 4.19583 21.4125 4.5875C21.8042 4.97917 22 5.45 22 6V18C22 18.55 21.8042 19.0208 21.4125 19.4125C21.0208 19.8042 20.55 20 20 20H4ZM4 18H11V6H4V18ZM13 18H20V6H13V18ZM5 16H10V14H5V16ZM5 13H10V11H5V13ZM5 10H10V8H5V10ZM14 16H19V14H14V16ZM14 13H19V11H14V13ZM14 10H19V8H14V10Z" fill="currentColor"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="format_label">Format strony:</label>
-          <div class="pill-group pill-group--wrap" id="formatToggle">
-            <button type="button" class="pill" data-w="297" data-h="420">A3</button>
-            <button type="button" class="pill" data-w="210" data-h="297">A4</button>
-            <button type="button" class="pill" data-w="148" data-h="210">A5</button>
-            <button type="button" class="pill" data-w="105" data-h="148">A6</button>
-            <button type="button" class="pill" data-w="176" data-h="250">B5</button>
-            <button type="button" class="pill" data-w="210" data-h="210" data-i18n="format_square">Kwadrat</button>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" data-i18n="page_width">Szerokość strony:</label>
-          <div class="form-field">
-            <input class="form-input decimal-input" id="pageWidth" type="text" value="210.00" inputmode="decimal" data-min="0" data-decimals="2">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="page_height">Wysokość strony:</label>
-          <div class="form-field">
-            <input class="form-input decimal-input" id="pageHeight" type="text" value="297.00" inputmode="decimal" data-min="0" data-decimals="2">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="margin_top">Margines górny:</label>
-          <div class="form-field">
-            <input class="form-input decimal-input" id="marginTop" type="text" value="5.00" inputmode="decimal" data-min="0" data-decimals="2">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="margin_bottom">Margines dolny:</label>
-          <div class="form-field">
-            <input class="form-input decimal-input" id="marginBottom" type="text" value="5.00" inputmode="decimal" data-min="0" data-decimals="2">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="margin_left">Margines lewy:</label>
-          <div class="form-field">
-            <input class="form-input decimal-input" id="marginLeft" type="text" value="5.00" inputmode="decimal" data-min="0" data-decimals="2">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="margin_right">Margines prawy:</label>
-          <div class="form-field">
-            <input class="form-input decimal-input" id="marginRight" type="text" value="5.00" inputmode="decimal" data-min="0" data-decimals="2">
-          </div>
-        </div>
-      </div>
-
-      <div class="group__sub" data-i18n="sec_type">Typografia</div>
-      <div class="form-fields-grid">
-        <div class="form-group">
-          <label class="form-label" data-i18n="font_size">Wielkość fontu (pt):</label>
-          <div class="form-field">
-            <input class="form-input decimal-input" id="fontSize" type="text" value="8.00" inputmode="decimal" data-min="1" data-decimals="2">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="line_height">Współczynnik interlinii:</label>
-          <div class="form-field">
-            <input class="form-input decimal-input" id="lineHeight" type="text" value="1.20" inputmode="decimal" data-min="0.1" data-decimals="2">
-            <div class="form-controls">
-              <button type="button" class="ctrl-btn" data-target="lineHeight" data-dir="-1">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.45801 4.49609H8.54201V5.50409H1.45801V4.49609Z" fill="currentColor"/></svg>
+          <div class="unit-control">
+            <span class="unit-control-label" data-i18n="facing_label">Str. Widz:</span>
+            <div class="pill-group" id="facingToggle">
+              <button type="button" class="pill is-active" data-value="single">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 14H9V16H12H15V14H12Z" fill="currentColor"/><path d="M12 8H9V10H12H15V8H12Z" fill="currentColor"/><path d="M12 11H9V13H12H15V11H12Z" fill="currentColor"/><path d="M12 4H7C6.45 4 5.97917 4.19583 5.5875 4.5875C5.19583 4.97917 5 5.45 5 6V18C5 18.55 5.19583 19.0208 5.5875 19.4125C5.97917 19.8042 6.45 20 7 20H12H17C17.55 20 18.0208 19.8042 18.4125 19.4125C18.8042 19.0208 19 18.55 19 18V6C19 5.45 18.8042 4.97917 18.4125 4.5875C18.0208 4.19583 17.55 4 17 4H12ZM7 6H12H17V18H12H7V6Z" fill="currentColor"/></svg>
               </button>
-              <button type="button" class="ctrl-btn" data-target="lineHeight" data-dir="1">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.49006 4.51006H8.38806V5.49006H5.49006V8.38806H4.51006V5.49006H1.61206V4.51006H4.51006V1.61206H5.49006V4.51006Z" fill="currentColor"/></svg>
+              <button type="button" class="pill" data-value="spread">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 20C3.45 20 2.97917 19.8042 2.5875 19.4125C2.19583 19.0208 2 18.55 2 18V6C2 5.45 2.19583 4.97917 2.5875 4.5875C2.97917 4.19583 3.45 4 4 4H20C20.55 4 21.0208 4.19583 21.4125 4.5875C21.8042 4.97917 22 5.45 22 6V18C22 18.55 21.8042 19.0208 21.4125 19.4125C21.0208 19.8042 20.55 20 20 20H4ZM4 18H11V6H4V18ZM13 18H20V6H13V18ZM5 16H10V14H5V16ZM5 13H10V11H5V13ZM5 10H10V8H5V10ZM14 16H19V14H14V16ZM14 13H19V11H14V13ZM14 10H19V8H14V10Z" fill="currentColor"/></svg>
               </button>
             </div>
           </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="firstHeightMode" data-i18n="first_height_label">Siatka liczona od:</label>
-          <select class="form-select" id="firstHeightMode">
-            <option value="leading" data-i18n="fh_leading">Interlinii</option>
-            <option value="xheight" data-i18n="fh_xheight">Wysokości X</option>
-            <option value="capheight" data-i18n="fh_capheight">Wysokości wersalika</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="font_label">Krój do pomiaru:</label>
-          <label class="check">
-            <input type="checkbox" id="fontLicensed">
-            <span data-i18n="font_licence">Mam licencję na krój, który wgrywam</span>
-          </label>
-          <div class="file">
-            <button type="button" class="btn" id="fontPick" disabled data-i18n="font_pick">Wgraj plik</button>
-            <span class="file__name" id="fontName">Fragment Mono</span>
-            <button type="button" class="link" id="fontClear" hidden data-i18n="font_clear">Usuń</button>
+          <div class="form-group">
+            <label class="form-label" data-i18n="format_label">Format strony:</label>
+            <div class="pill-group pill-group--wrap" id="formatToggle">
+              <button type="button" class="pill" data-w="297" data-h="420">A3</button>
+              <button type="button" class="pill" data-w="210" data-h="297">A4</button>
+              <button type="button" class="pill" data-w="148" data-h="210">A5</button>
+              <button type="button" class="pill" data-w="105" data-h="148">A6</button>
+              <button type="button" class="pill" data-w="176" data-h="250">B5</button>
+              <button type="button" class="pill" data-w="210" data-h="210" data-i18n="format_square">Kwadrat</button>
+            </div>
           </div>
-          <p class="note" id="fontNote" data-i18n="font_note">Plik nie opuszcza przeglądarki — aplikacja nie ma serwera. Po odświeżeniu wraca krój wbudowany.</p>
-          <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden>
-        </div>
-      </div>
 
-      <div class="group__sub" data-i18n="sec_grid">Siatka</div>
-      <div class="form-fields-grid">
-        <div class="form-group">
-          <label class="form-label" data-i18n="modules">Liczba modułów:</label>
-          <div class="form-field">
-            <input class="form-input" id="hModules" type="text" inputmode="numeric" value="1" data-min="1" data-int="true">
-            <div class="form-controls">
-              <button type="button" class="ctrl-btn" data-target="hModules" data-dir="-1">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.45801 4.49609H8.54201V5.50409H1.45801V4.49609Z" fill="currentColor"/></svg>
-              </button>
-              <button type="button" class="ctrl-btn" data-target="hModules" data-dir="1">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.49006 4.51006H8.38806V5.49006H5.49006V8.38806H4.51006V5.49006H1.61206V4.51006H4.51006V1.61206H5.49006V4.51006Z" fill="currentColor"/></svg>
-              </button>
+          <div class="form-group">
+            <label class="form-label" data-i18n="page_width">Szerokość strony:</label>
+            <div class="form-field">
+              <input class="form-input decimal-input" id="pageWidth" type="text" value="210.00" inputmode="decimal" data-min="0" data-decimals="2">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="page_height">Wysokość strony:</label>
+            <div class="form-field">
+              <input class="form-input decimal-input" id="pageHeight" type="text" value="297.00" inputmode="decimal" data-min="0" data-decimals="2">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="margin_top">Margines górny:</label>
+            <div class="form-field">
+              <input class="form-input decimal-input" id="marginTop" type="text" value="5.00" inputmode="decimal" data-min="0" data-decimals="2">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="margin_bottom">Margines dolny:</label>
+            <div class="form-field">
+              <input class="form-input decimal-input" id="marginBottom" type="text" value="5.00" inputmode="decimal" data-min="0" data-decimals="2">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="margin_left">Margines lewy:</label>
+            <div class="form-field">
+              <input class="form-input decimal-input" id="marginLeft" type="text" value="5.00" inputmode="decimal" data-min="0" data-decimals="2">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="margin_right">Margines prawy:</label>
+            <div class="form-field">
+              <input class="form-input decimal-input" id="marginRight" type="text" value="5.00" inputmode="decimal" data-min="0" data-decimals="2">
             </div>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="columns">Liczba kolumn:</label>
-          <div class="form-field">
-            <input class="form-input" id="columns" type="text" inputmode="numeric" value="1" data-min="1" data-int="true">
-            <div class="form-controls">
-              <button type="button" class="ctrl-btn" data-target="columns" data-dir="-1">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.45801 4.49609H8.54201V5.50409H1.45801V4.49609Z" fill="currentColor"/></svg>
-              </button>
-              <button type="button" class="ctrl-btn" data-target="columns" data-dir="1">
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.49006 4.51006H8.38806V5.49006H5.49006V8.38806H4.51006V5.49006H1.61206V4.51006H4.51006V1.61206H5.49006V4.51006Z" fill="currentColor"/></svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="gutter">Odstęp między kolumnami:</label>
-          <div class="form-field">
-            <input class="form-input decimal-input" id="gutterWidth" type="text" value="" inputmode="decimal" data-min="0" data-decimals="2" placeholder="auto">
-          </div>
         </div>
       </div>
 
-      <div class="group__sub" data-i18n="sec_preview">Podgląd</div>
-      <div class="form-fields-grid">
-        <div class="form-group">
-          <label class="check" id="guidesRow">
-            <input type="checkbox" id="showGuides">
-            <span data-i18n="show_guides">Pokaż linie pomocnicze</span>
-          </label>
-          <label class="check">
-            <input type="checkbox" id="showSpecimen">
-            <span data-i18n="show_specimen">Pokaż podgląd tekstu</span>
-          </label>
+      <div class="group is-open" data-group="type">
+        <button type="button" class="group__head">
+          <svg class="group__chev" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 1.5L6.5 5L3 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
+          <span class="group__title" data-i18n="sec_type">Typografia</span>
+          <span class="group__summary" id="sum-type"></span>
+        </button>
+        <div class="group__body">
+        <div class="form-fields-grid">
+          <div class="form-group">
+            <label class="form-label" data-i18n="font_size">Wielkość fontu (pt):</label>
+            <div class="form-field">
+              <input class="form-input decimal-input" id="fontSize" type="text" value="8.00" inputmode="decimal" data-min="1" data-decimals="2">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="line_height">Współczynnik interlinii:</label>
+            <div class="form-field">
+              <input class="form-input decimal-input" id="lineHeight" type="text" value="1.20" inputmode="decimal" data-min="0.1" data-decimals="2">
+              <div class="form-controls">
+                <button type="button" class="ctrl-btn" data-target="lineHeight" data-dir="-1">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.45801 4.49609H8.54201V5.50409H1.45801V4.49609Z" fill="currentColor"/></svg>
+                </button>
+                <button type="button" class="ctrl-btn" data-target="lineHeight" data-dir="1">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.49006 4.51006H8.38806V5.49006H5.49006V8.38806H4.51006V5.49006H1.61206V4.51006H4.51006V1.61206H5.49006V4.51006Z" fill="currentColor"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="firstHeightMode" data-i18n="first_height_label">Siatka liczona od:</label>
+            <select class="form-select" id="firstHeightMode">
+              <option value="leading" data-i18n="fh_leading">Interlinii</option>
+              <option value="xheight" data-i18n="fh_xheight">Wysokości X</option>
+              <option value="capheight" data-i18n="fh_capheight">Wysokości wersalika</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="font_label">Krój do pomiaru:</label>
+            <div class="sub">
+              <div class="file">
+                <button type="button" class="btn" id="fontPick" disabled data-i18n="font_pick">Wgraj plik</button>
+                <span class="file__name" id="fontName">Fragment Mono</span>
+                <button type="button" class="link" id="fontClear" hidden data-i18n="font_clear">Usuń</button>
+              </div>
+              <label class="check">
+                <input type="checkbox" id="fontLicensed">
+                <span data-i18n="font_licence">Mam licencję na krój, który wgrywam</span>
+              </label>
+              <p class="note" id="fontNote" data-i18n="font_note">Plik nie opuszcza przeglądarki — aplikacja nie ma serwera. Po odświeżeniu wraca krój wbudowany.</p>
+            </div>
+            <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <div class="group is-open" data-group="grid">
+        <button type="button" class="group__head">
+          <svg class="group__chev" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 1.5L6.5 5L3 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
+          <span class="group__title" data-i18n="sec_grid">Siatka</span>
+          <span class="group__summary" id="sum-grid"></span>
+        </button>
+        <div class="group__body">
+        <div class="form-fields-grid">
+          <div class="form-group">
+            <label class="form-label" data-i18n="modules">Liczba modułów:</label>
+            <div class="form-field">
+              <input class="form-input" id="hModules" type="text" inputmode="numeric" value="1" data-min="1" data-int="true">
+              <div class="form-controls">
+                <button type="button" class="ctrl-btn" data-target="hModules" data-dir="-1">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.45801 4.49609H8.54201V5.50409H1.45801V4.49609Z" fill="currentColor"/></svg>
+                </button>
+                <button type="button" class="ctrl-btn" data-target="hModules" data-dir="1">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.49006 4.51006H8.38806V5.49006H5.49006V8.38806H4.51006V5.49006H1.61206V4.51006H4.51006V1.61206H5.49006V4.51006Z" fill="currentColor"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="columns">Liczba kolumn:</label>
+            <div class="form-field">
+              <input class="form-input" id="columns" type="text" inputmode="numeric" value="1" data-min="1" data-int="true">
+              <div class="form-controls">
+                <button type="button" class="ctrl-btn" data-target="columns" data-dir="-1">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.45801 4.49609H8.54201V5.50409H1.45801V4.49609Z" fill="currentColor"/></svg>
+                </button>
+                <button type="button" class="ctrl-btn" data-target="columns" data-dir="1">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.49006 4.51006H8.38806V5.49006H5.49006V8.38806H4.51006V5.49006H1.61206V4.51006H4.51006V1.61206H5.49006V4.51006Z" fill="currentColor"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="gutter">Odstęp między kolumnami:</label>
+            <div class="form-field">
+              <input class="form-input decimal-input" id="gutterWidth" type="text" value="" inputmode="decimal" data-min="0" data-decimals="2" placeholder="auto">
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <div class="group is-open" data-group="preview">
+        <button type="button" class="group__head">
+          <svg class="group__chev" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 1.5L6.5 5L3 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
+          <span class="group__title" data-i18n="sec_preview">Podgląd</span>
+          <span class="group__summary" id="sum-preview"></span>
+        </button>
+        <div class="group__body">
+        <div class="form-fields-grid">
+          <div class="form-group">
+            <label class="check" id="guidesRow">
+              <input type="checkbox" id="showGuides">
+              <span data-i18n="show_guides">Pokaż linie pomocnicze</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" id="showSpecimen">
+              <span data-i18n="show_specimen">Pokaż podgląd tekstu</span>
+            </label>
+          </div>
+        </div>
         </div>
       </div>
 
       <div class="btn-row">
-        <button type="button" class="btn btn--small" id="recalc">
-          <span data-i18n="btn_draw">Rysuj</span>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12.765 21C11.955 21 11.2725 20.7225 10.7175 20.1675C10.1625 19.6125 9.885 18.945 9.885 18.165C9.885 17.025 10.3462 15.9937 11.2687 15.0713C12.1912 14.1488 13.3425 13.575 14.7225 13.35C14.6775 12.81 14.5425 12.4012 14.3175 12.1237C14.0925 11.8462 13.785 11.7075 13.395 11.7075C12.945 11.7075 12.4575 11.895 11.9325 12.27C11.4075 12.645 10.785 13.26 10.065 14.115C8.895 15.51 8.03625 16.4175 7.48875 16.8375C6.94125 17.2575 6.3525 17.4675 5.7225 17.4675C4.9575 17.4675 4.3125 17.1825 3.7875 16.6125C3.2625 16.0425 3 15.3525 3 14.5425C3 13.7325 3.17625 12.9037 3.52875 12.0562C3.88125 11.2087 4.4775 10.1925 5.3175 9.0075C5.6025 8.6175 5.8125 8.2875 5.9475 8.0175C6.0825 7.7475 6.15 7.53 6.15 7.365C6.15 7.26 6.13125 7.18125 6.09375 7.12875C6.05625 7.07625 6 7.05 5.925 7.05C5.775 7.05 5.5875 7.14375 5.3625 7.33125C5.1375 7.51875 4.875 7.8075 4.575 8.1975L3 6.6C3.48 6.015 3.9675 5.56875 4.4625 5.26125C4.9575 4.95375 5.445 4.8 5.925 4.8C6.615 4.8 7.2 5.04 7.68 5.52C8.16 6 8.4 6.6 8.4 7.32C8.4 7.755 8.2875 8.235 8.0625 8.76C7.8375 9.285 7.4625 9.915 6.9375 10.65C6.3675 11.46 5.94375 12.1725 5.66625 12.7875C5.38875 13.4025 5.25 13.9425 5.25 14.4075C5.25 14.6625 5.29125 14.8613 5.37375 15.0038C5.45625 15.1463 5.5725 15.2175 5.7225 15.2175C5.8725 15.2175 6.00375 15.1762 6.11625 15.0937C6.22875 15.0112 6.435 14.8125 6.735 14.4975C6.93 14.2875 7.1625 14.0288 7.4325 13.7213C7.7025 13.4138 8.0325 13.035 8.4225 12.585C9.3675 11.46 10.2225 10.6575 10.9875 10.1775C11.7525 9.6975 12.555 9.4575 13.395 9.4575C14.4 9.4575 15.225 9.795 15.87 10.47C16.515 11.145 16.8825 12.0675 16.9725 13.2375H19.2V15.4875H16.9725C16.8525 17.1675 16.4137 18.5062 15.6562 19.5037C14.8987 20.5012 13.935 21 12.765 21ZM12.81 18.75C13.29 18.75 13.695 18.4762 14.025 17.9287C14.355 17.3812 14.58 16.62 14.7 15.645C14.01 15.81 13.41 16.1362 12.9 16.6237C12.39 17.1112 12.135 17.595 12.135 18.075C12.135 18.285 12.195 18.45 12.315 18.57C12.435 18.69 12.6 18.75 12.81 18.75ZM16.3875 7.6125C15.8625 7.0875 15.6 6.45 15.6 5.7C15.6 4.95 15.8625 4.3125 16.3875 3.7875C16.9125 3.2625 17.55 3 18.3 3C19.05 3 19.6875 3.2625 20.2125 3.7875C20.7375 4.3125 21 4.95 21 5.7C21 6.45 20.7375 7.0875 20.2125 7.6125C19.6875 8.1375 19.05 8.4 18.3 8.4C17.55 8.4 16.9125 8.1375 16.3875 7.6125Z" fill="currentColor"/></svg>
-        </button>
         <button type="button" class="btn btn--small" id="shareLink">
           <span data-i18n="btn_share">Kopiuj link</span>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M11 17H7C5.61667 17 4.4375 16.5125 3.4625 15.5375C2.4875 14.5625 2 13.3833 2 12C2 10.6167 2.4875 9.4375 3.4625 8.4625C4.4375 7.4875 5.61667 7 7 7H11V9H7C6.16667 9 5.45833 9.29167 4.875 9.875C4.29167 10.4583 4 11.1667 4 12C4 12.8333 4.29167 13.5417 4.875 14.125C5.45833 14.7083 6.16667 15 7 15H11V17ZM8 13V11H16V13H8ZM13 17V15H17C17.8333 15 18.5417 14.7083 19.125 14.125C19.7083 13.5417 20 12.8333 20 12C20 11.1667 19.7083 10.4583 19.125 9.875C18.5417 9.29167 17.8333 9 17 9H13V7H17C18.3833 7 19.5625 7.4875 20.5375 8.4625C21.5125 9.4375 22 10.6167 22 12C22 13.3833 21.5125 14.5625 20.5375 15.5375C19.5625 16.5125 18.3833 17 17 17H13Z" fill="currentColor"/></svg>
@@ -1111,10 +1244,6 @@
     <div class="panel-preview" id="panelPreview">
       <div class="preview-header">
         <div class="preview-title" data-i18n="preview_title">Podgląd:</div>
-        <div class="pill-group" id="langToggle">
-          <button type="button" class="pill is-active" data-value="pl">Pl</button>
-          <button type="button" class="pill" data-value="en">En</button>
-        </div>
       </div>
       <div class="canvas-wrap">
         <canvas id="gridCanvas"></canvas>
@@ -1138,6 +1267,8 @@
         <span id="appFooter"></span>
       </div>
     </div>
+
+    </div><!-- /app-body -->
 
     <!-- ===== RESPONSIVE FOOTER (tablet/mobile) ===== -->
     <div class="app-footer-responsive" id="responsiveFooter">
@@ -1166,6 +1297,8 @@
         sec_type: 'Typografia',
         sec_grid: 'Siatka',
         sec_preview: 'Podgląd',
+        preview_none: 'wyłączony',
+        fh_spread_short: 'rozkładówka',
         font_label: 'Krój do pomiaru:',
         font_licence: 'Mam licencję na krój, który wgrywam',
         font_pick: 'Wgraj plik',
@@ -1195,7 +1328,6 @@
         modules: 'Liczba modułów:',
         columns: 'Liczba kolumn:',
         gutter: 'Odstęp między kolumnami:',
-        btn_draw: 'Rysuj',
         btn_reset: 'Resetuj',
         btn_download: 'Pobierz grid',
         results_title: 'Ustawienie:',
@@ -1244,6 +1376,8 @@
         sec_type: 'Typography',
         sec_grid: 'Grid',
         sec_preview: 'Preview',
+        preview_none: 'off',
+        fh_spread_short: 'spread',
         font_label: 'Font to measure:',
         font_licence: 'I hold a licence for the font I upload',
         font_pick: 'Upload file',
@@ -1273,7 +1407,6 @@
         modules: 'Module count:',
         columns: 'Column count:',
         gutter: 'Column gap:',
-        btn_draw: 'Draw',
         btn_reset: 'Reset',
         btn_download: 'Download grid',
         results_title: 'Settings:',
@@ -1570,6 +1703,7 @@
         firstHeightMode: document.getElementById('firstHeightMode').value,
         showGuides: document.getElementById('showGuides').checked,
         showSpecimen: document.getElementById('showSpecimen').checked,
+        groupOpen: groupOpen,
         mobilePanel: 'params'
       };
       localStorage.setItem('gridApp_state', JSON.stringify(state));
@@ -1607,6 +1741,7 @@
         if (s.firstHeightMode) document.getElementById('firstHeightMode').value = s.firstHeightMode;
         if (typeof s.showGuides === 'boolean') document.getElementById('showGuides').checked = s.showGuides;
         if (typeof s.showSpecimen === 'boolean') document.getElementById('showSpecimen').checked = s.showSpecimen;
+        if (s.groupOpen && typeof s.groupOpen === 'object') Object.assign(groupOpen, s.groupOpen);
         if (s.columns) document.getElementById('columns').value = s.columns;
         if (s.hModules) {
           document.getElementById('hModules').value = s.hModules;
@@ -1717,9 +1852,63 @@
       }
     });
 
+    /* ========================================
+       ROZDZIAŁY: zwijanie i podsumowania
+       Zwinięty rozdział pokazuje w nagłówku to, co w nim ustawiono —
+       wzorzec .group__summary z edytora brandmanuala.
+    ======================================== */
+    const groupOpen = { document: true, type: true, grid: true, preview: true };
+
+    function applyGroupState() {
+      document.querySelectorAll('.group[data-group]').forEach(g => {
+        const open = groupOpen[g.dataset.group] !== false;
+        g.classList.toggle('is-open', open);
+        g.querySelector('.group__head').setAttribute('aria-expanded', String(open));
+      });
+    }
+
+    function updateGroupSummaries() {
+      const u = currentUnit;
+      const num = id => readDecimalInput(id, 0).toFixed(2);
+      const fmt = [...document.querySelectorAll('#formatToggle .pill.is-active')]
+        .map(p => p.textContent.trim())[0];
+
+      const set = (slug, text) => {
+        const el = document.getElementById('sum-' + slug);
+        if (el) el.textContent = text;
+      };
+
+      set('document', [fmt, `${num('pageWidth')} × ${num('pageHeight')} ${u}`,
+                       facingPages ? t('fh_spread_short') : null].filter(Boolean).join(' · '));
+
+      const modeKey = { leading: 'fh_leading', xheight: 'fh_xheight', capheight: 'fh_capheight' }[
+        document.getElementById('firstHeightMode').value];
+      const fontLabel = document.getElementById('fontName').textContent.trim();
+      set('type', `${num('fontSize')} pt / ${num('lineHeight')} · ${t(modeKey)} · ${fontLabel}`);
+
+      const cols = document.getElementById('columns').value || '1';
+      const mods = document.getElementById('hModules').value || '1';
+      set('grid', `${cols} × ${mods}`);
+
+      const on = [];
+      if (document.getElementById('showGuides').checked) on.push(t('show_guides'));
+      if (document.getElementById('showSpecimen').checked) on.push(t('show_specimen'));
+      set('preview', on.length ? on.join(' · ') : t('preview_none'));
+    }
+
+    document.querySelectorAll('.group[data-group] .group__head').forEach(head => {
+      head.addEventListener('click', () => {
+        const slug = head.closest('.group').dataset.group;
+        groupOpen[slug] = !(groupOpen[slug] !== false);
+        applyGroupState();
+        saveState();
+      });
+    });
+
     loadState();
     if (applyShareUrl()) saveState();
     updateFormatPills();
+    applyGroupState();
 
     /* Wklejenie linku przy otwartej aplikacji zmienia sam fragment adresu,
        a to nie przeładowuje strony — bez tego nic by się nie wydarzyło. */
@@ -2346,6 +2535,7 @@
       ctx.restore();
       updateCtrlBtnStates();
       updateFormatPills();
+      updateGroupSummaries();
       saveState();
     }
 
@@ -2449,6 +2639,8 @@
     ======================================== */
     const APP_VERSION = '2026.11.06.3';
 
+    document.getElementById('topbarVersion').textContent = 'v' + APP_VERSION;
+
     (function watchVersion() {
       const banner = document.getElementById('updateBanner');
       if (!banner) return;
@@ -2511,6 +2703,7 @@
       fontNote.textContent = t('font_note');
       fontFile.value = '';
       recalcAndDraw();
+      updateGroupSummaries();
     }
 
     fontLicensed.addEventListener('change', () => {
@@ -2553,7 +2746,6 @@
       document.fonts.ready.then(() => { metricsCache.clear(); updateGuidesRow(); recalcAndDraw(); });
     }
 
-    document.getElementById('recalc').addEventListener('click', () => { recalcAndDraw(); saveState(); });
     document.getElementById('downloadSVG').addEventListener('click', downloadSVG);
 
     document.getElementById('reset').addEventListener('click', () => {
