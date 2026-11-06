@@ -182,7 +182,7 @@
       background-size: 100% var(--loader-step);
       animation:
         loader-draw 1.1s cubic-bezier(.22, .61, .36, 1) forwards,
-        loader-spread 1s cubic-bezier(.33, 0, .2, 1) 1.15s forwards;
+        loader-spread 1.9s cubic-bezier(.33, 0, .2, 1) 1.15s forwards;
     }
     @keyframes loader-draw { to { height: 100%; } }
     @keyframes loader-spread {
@@ -2774,8 +2774,8 @@
         setTimeout(() => el.remove(), 1200); // gdy przejście nie wystartuje
       };
       const fonts = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-      // 1,1 s rysowania + 1 s rozsuwania; dopiero potem schodzimy
-      Promise.all([fonts, new Promise(r => setTimeout(r, 2200))]).then(done);
+      // 1,1 s rysowania + 1,9 s rozsuwania; dopiero potem schodzimy
+      Promise.all([fonts, new Promise(r => setTimeout(r, 3050))]).then(done);
     })();
 
     (function watchVersion() {
