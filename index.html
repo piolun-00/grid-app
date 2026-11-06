@@ -232,12 +232,68 @@
       margin-left: auto;
     }
 
+    /* ===== OKNO DIALOGOWE =====
+       Element <dialog> zamiast własnej nakładki: sam pilnuje warstwy
+       nad resztą strony, zamknięcia Escapem i pułapki na fokus.
+    */
+    .modal {
+      /* Globalny reset * { margin: 0 } zabija margin:auto, którym <dialog>
+         centruje się domyślnie — stąd jawne przywrócenie. */
+      margin: auto;
+      padding: 0;
+      border: 1px solid var(--border-mid);
+      border-radius: var(--radius-card);
+      background: var(--bg-panel);
+      color: var(--text-primary);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .12);
+      width: min(380px, calc(100vw - 32px));
+    }
+    .modal::backdrop {
+      background: rgba(244, 244, 242, .82);
+      backdrop-filter: blur(3px);
+    }
+    .modal__card {
+      display: grid;
+      gap: var(--gap-md);
+      padding: var(--layout-md);
+    }
+    .modal__title {
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .modal__text {
+      color: var(--text-muted);
+      font-size: var(--font-small);
+      margin: 0;
+    }
+    .modal__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--gap-sm);
+    }
+    .modal__actions .btn { flex: none; }
+    /* Akcja główna okna: czarna jak „Pobierz grid", ale bez width:100%
+       z .btn--full, bo w rzędzie akcji ma zajmować tylko swoją szerokość. */
+    .btn.is--primary {
+      background: var(--accent);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
+    }
+    .btn.is--danger {
+      background: var(--press-border);
+      border-color: var(--press-border);
+      color: var(--press-fg);
+    }
+
     /* ===== PROJEKT W PASKU GÓRNYM ===== */
     .topbar__project { position: relative; flex: none; }
+    /* Wszystkie kontrolki w pasku mają wysokość pilla, żeby stały w jednej
+       linii: przyciski historii były 34 × 40 przy pillach 48 × 24. */
     .btn.is--ghost {
       background: none;
       border-color: transparent;
-      padding: var(--pad-v-xs, 4px) var(--pad-h-xs);
+      height: var(--size-xs);
+      padding: 0 var(--pad-h-xs);
       gap: var(--gap-sm);
       max-width: 240px;
     }
@@ -293,7 +349,12 @@
     .menu button.is--danger { color: var(--press-border); }
     .menu hr { border: 0; border-top: 1px solid var(--border-mid); margin: var(--gap-xs) 0; }
     .topbar__history { display: flex; gap: var(--gap-xs); }
-    .topbar__history .btn { padding: var(--pad-v-xs, 4px) var(--pad-h-xs); }
+    .topbar__history .btn {
+      width: var(--size-xs);
+      height: var(--size-xs);
+      padding: 0;
+      justify-content: center;
+    }
     .btn:disabled { opacity: .35; cursor: default; }
     .btn:disabled:hover { border-color: var(--border-mid); }
 
@@ -570,6 +631,7 @@
       border-radius: var(--radius-input);
       padding: 0 9px;
     }
+    .form-field[hidden] { display: none; }
     .form-field:hover {
       border-color: var(--border-lighter);
     }
@@ -1110,6 +1172,20 @@
     <span data-i18n="update_text">Jest nowa wersja grid.app. Odśwież stronę, żeby ją wczytać.</span>
     <button type="button" class="btn banner-btn" id="updateReload" data-i18n="update_btn">Odśwież</button>
   </div>
+  <dialog class="modal" id="modal">
+    <form method="dialog" class="modal__card" id="modalForm">
+      <div class="modal__title" id="modalTitle"></div>
+      <p class="modal__text" id="modalText" hidden></p>
+      <div class="form-field" id="modalField" hidden>
+        <input class="form-input" id="modalInput" type="text" autocomplete="off">
+      </div>
+      <div class="modal__actions">
+        <button type="button" class="btn" id="modalCancel" data-i18n="dlg_cancel">Anuluj</button>
+        <button type="submit" class="btn is--primary" id="modalOk" data-i18n="dlg_ok">OK</button>
+      </div>
+    </form>
+  </dialog>
+
   <div class="app">
     <!-- ===== PASEK GÓRNY ===== -->
     <header class="topbar">
@@ -1163,7 +1239,7 @@
     <div class="panel-params" id="panelParams">
       <div class="panel-title" data-i18n="params_title">Parametry:</div>
 
-      <div class="group is-open" data-group="document">
+      <div class="group" data-group="document">
         <button type="button" class="group__head">
           <svg class="group__chev" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 1.5L6.5 5L3 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
           <span class="group__title" data-i18n="sec_document">Dokument</span>
@@ -1240,7 +1316,7 @@
         </div>
       </div>
 
-      <div class="group is-open" data-group="type">
+      <div class="group" data-group="type">
         <button type="button" class="group__head">
           <svg class="group__chev" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 1.5L6.5 5L3 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
           <span class="group__title" data-i18n="sec_type">Typografia</span>
@@ -1296,7 +1372,7 @@
         </div>
       </div>
 
-      <div class="group is-open" data-group="grid">
+      <div class="group" data-group="grid">
         <button type="button" class="group__head">
           <svg class="group__chev" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 1.5L6.5 5L3 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
           <span class="group__title" data-i18n="sec_grid">Siatka</span>
@@ -1342,7 +1418,7 @@
         </div>
       </div>
 
-      <div class="group is-open" data-group="preview">
+      <div class="group" data-group="preview">
         <button type="button" class="group__head">
           <svg class="group__chev" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 1.5L6.5 5L3 8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="square"/></svg>
           <span class="group__title" data-i18n="sec_preview">Podgląd</span>
@@ -1471,6 +1547,10 @@
         show_specimen: 'Pokaż podgląd tekstu',
         sec_document: 'Dokument',
         proj_list: 'Projekty',
+        dlg_cancel: 'Anuluj',
+        dlg_ok: 'OK',
+        dlg_delete: 'Usuń',
+        dlg_import_title: 'Nie udało się wczytać',
         proj_new: 'Nowy projekt',
         proj_dup: 'Duplikuj',
         proj_rename: 'Zmień nazwę',
@@ -1566,6 +1646,10 @@
         show_specimen: 'Show text preview',
         sec_document: 'Document',
         proj_list: 'Projects',
+        dlg_cancel: 'Cancel',
+        dlg_ok: 'OK',
+        dlg_delete: 'Delete',
+        dlg_import_title: 'Could not load',
         proj_new: 'New project',
         proj_dup: 'Duplicate',
         proj_rename: 'Rename',
@@ -1994,6 +2078,59 @@
     }
 
     /* ========================================
+       OKNA DIALOGOWE
+       Zamiast prompt/confirm/alert, które wyglądają systemowo
+       i nie dają się ostylować.
+    ======================================== */
+    const modal = document.getElementById('modal');
+    const modalForm = document.getElementById('modalForm');
+    const modalInput = document.getElementById('modalInput');
+    let modalResolve = null;
+
+    function openModal({ title, text = '', value = null, okKey = 'dlg_ok', danger = false, cancel = true }) {
+      document.getElementById('modalTitle').textContent = title;
+      const textEl = document.getElementById('modalText');
+      textEl.textContent = text;
+      textEl.hidden = !text;
+      document.getElementById('modalField').hidden = value === null;
+      modalInput.value = value === null ? '' : value;
+
+      const ok = document.getElementById('modalOk');
+      ok.textContent = t(okKey);
+      ok.classList.toggle('is--primary', !danger);
+      ok.classList.toggle('is--danger', danger);
+      document.getElementById('modalCancel').hidden = !cancel;
+
+      modal.showModal();
+      if (value !== null) { modalInput.focus(); modalInput.select(); }
+      else ok.focus();
+
+      return new Promise(resolve => { modalResolve = resolve; });
+    }
+
+    function settleModal(result) {
+      const done = modalResolve;
+      modalResolve = null;
+      if (modal.open) modal.close();
+      if (done) done(result);
+    }
+
+    modalForm.addEventListener('submit', e => {
+      e.preventDefault();
+      settleModal(document.getElementById('modalField').hidden ? true : modalInput.value);
+    });
+    document.getElementById('modalCancel').addEventListener('click', () => settleModal(null));
+    // Escape i kliknięcie w tło zamykają okno natywnie — wynik musi to odzwierciedlać
+    modal.addEventListener('cancel', e => { e.preventDefault(); settleModal(null); });
+    modal.addEventListener('close', () => settleModal(null));
+    modal.addEventListener('click', e => { if (e.target === modal) settleModal(null); });
+
+    const askText = (title, value) => openModal({ title, value });
+    const askConfirm = (title, text, okKey) => openModal({ title, text, okKey, danger: true })
+      .then(r => r === true);
+    const notify = (title, text) => openModal({ title, text, cancel: false });
+
+    /* ========================================
        MAGAZYN PROJEKTÓW (IndexedDB)
        localStorage nie udźwignie pliku kroju, a projekt ma go pamiętać,
        więc cały rekord — stan siatki i bajty kroju — leży w IndexedDB.
@@ -2256,7 +2393,7 @@
        Zwinięty rozdział pokazuje w nagłówku to, co w nim ustawiono —
        wzorzec .group__summary z edytora brandmanuala.
     ======================================== */
-    const groupOpen = { document: true, type: true, grid: true, preview: true };
+    const groupOpen = { document: false, type: false, grid: false, preview: false };
 
     function applyGroupState() {
       document.querySelectorAll('.group[data-group]').forEach(g => {
@@ -2390,7 +2527,7 @@
 
     document.getElementById('projNew').addEventListener('click', async () => {
       closeProjectMenu();
-      const name = (prompt(t('proj_name_prompt'), t('proj_untitled')) || '').trim();
+      const name = ((await askText(t('proj_name_prompt'), t('proj_untitled'))) || '').trim();
       if (!name) return;
       resetFontToBuiltIn();
       document.getElementById('fontLicensed').checked = false;
@@ -2403,8 +2540,8 @@
     document.getElementById('projDup').addEventListener('click', async () => {
       closeProjectMenu();
       if (!currentProject) return;
-      const name = (prompt(t('proj_name_prompt'),
-        currentProject.name + ' — ' + t('proj_copy')) || '').trim();
+      const name = ((await askText(t('proj_name_prompt'),
+        currentProject.name + ' — ' + t('proj_copy'))) || '').trim();
       if (!name) return;
       await persistProject();
       await createProject(name, JSON.parse(JSON.stringify(currentProject.state)), currentProject.font);
@@ -2413,7 +2550,7 @@
     document.getElementById('projRename').addEventListener('click', async () => {
       closeProjectMenu();
       if (!currentProject) return;
-      const name = (prompt(t('proj_name_prompt'), currentProject.name) || '').trim();
+      const name = ((await askText(t('proj_name_prompt'), currentProject.name)) || '').trim();
       if (!name) return;
       currentProject.name = name;
       await persistProject();
@@ -2425,7 +2562,9 @@
       if (!currentProject) return;
       const all = await dbAll();
       if (all.length < 2) return; // ostatni projekt zostaje
-      if (!confirm(t('proj_delete_confirm').replace('{name}', currentProject.name))) return;
+      const zgoda = await askConfirm(t('proj_delete'),
+        t('proj_delete_confirm').replace('{name}', currentProject.name), 'dlg_delete');
+      if (!zgoda) return;
       const gone = currentProject.id;
       await dbDel(gone);
       const rest = (await dbAll()).sort((a, b) => b.updated - a.updated);
@@ -2489,7 +2628,7 @@
         }
         await createProject((data.name || t('proj_untitled')).trim(), data.state, font);
       } catch (err) {
-        alert(t('import_err'));
+        await notify(t('dlg_import_title'), t('import_err'));
       }
     });
 
