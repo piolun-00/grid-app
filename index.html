@@ -195,8 +195,10 @@
 
     .loader__label {
       position: absolute;
-      left: var(--layout-md);
-      bottom: var(--layout-md);
+      /* Tuż za pasem podziałki, na środku wysokości ekranu. */
+      left: calc(var(--loader-width) + var(--layout-md));
+      top: 50%;
+      transform: translateY(-50%);
       font-family: 'Fragment Mono', monospace;
       font-size: var(--font-small);
       color: var(--text-muted);
@@ -1076,6 +1078,7 @@
         flex-direction: column;
       }
       .loader__scale { width: 100%; }
+      .loader__label { left: var(--layout-md); }
       .app {
         height: auto;
         min-height: 100svh;
