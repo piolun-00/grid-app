@@ -81,6 +81,14 @@ nie z przypuszczeń — liczby są zmierzone.
       wymaga wzorców. Tani pierwszy krok: chorągiewka/justunek i teksty
       wzorcowe w obu językach.
 
+- [ ] **Skład wielokolumnowy.** Tekst na stronie dzielony na kilka kolumn.
+      Ustawienie kopiuje się z liczby kolumn siatki, ale da się je zmienić
+      niezależnie — liczba łamów siatki i liczba łamów, w które leje się
+      tekst, to dwie różne rzeczy. Do rozstrzygnięcia: jak mapować łamy
+      tekstu na łamy siatki, gdy liczby się nie zgadzają (najpewniej łam
+      tekstu obejmuje całkowitą liczbę łamów siatki razem ze światłami —
+      analogicznie do registru w pionie).
+
 ## Dostępność i UX
 
 - [ ] **Canvas bez tekstowego odpowiednika** — dla czytnika ekranu podgląd jest
