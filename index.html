@@ -3131,7 +3131,19 @@
     /* ========================================
        RECALC AND DRAW
     ======================================== */
+    /* recalcAndDraw woła się z kilkudziesięciu miejsc, a przy wpisywaniu
+       „210" leci trzy razy pod rząd — za każdym razem przebudowa tabeli
+       wyników przez innerHTML z podpięciem nasłuchów od nowa i pełne
+       przerysowanie canvasu. Zbieramy to w jedną klatkę.
+       recalcAndDrawNow zostaje dostępne tam, gdzie wynik jest potrzebny
+       natychmiast. */
+    let klatka = null;
     function recalcAndDraw() {
+      if (klatka !== null) return;
+      klatka = requestAnimationFrame(() => { klatka = null; recalcAndDrawNow(); });
+    }
+
+    function recalcAndDrawNow() {
       const p = readGridInputs();
       const g = computeGrid(p);
 
@@ -3487,7 +3499,7 @@
        porównanie z wersją wbudowaną w tę kopię, pasek z prośbą
        o odświeżenie. Bez odpytywania, gdy pasek już wisi.
     ======================================== */
-    const APP_VERSION = '2026.11.06.21';
+    const APP_VERSION = '2026.11.06.22';
 
     document.getElementById('topbarVersion').textContent = 'v' + APP_VERSION;
 

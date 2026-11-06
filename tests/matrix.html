@@ -28,7 +28,10 @@
   details { margin-top: 8px; }
   summary { cursor: pointer; color: var(--muted); }
   pre { background: var(--bg); padding: 8px; overflow: auto; font-size: 11px; margin: 6px 0 0; }
-  iframe { position: fixed; left: -9999px; width: 1440px; height: 900px; border: 0; }
+  /* Ramka musi być renderowana: poza ekranem przeglądarka wstrzymuje jej
+     klatki animacji, a aplikacja kolejkuje na nich przerysowanie. */
+  iframe { position: fixed; top: 0; left: 0; width: 1440px; height: 900px;
+           border: 0; opacity: .01; pointer-events: none; z-index: -1; }
 </style>
 </head>
 <body>
@@ -91,8 +94,11 @@ function czekajNaAplikacje() {
     const start = Date.now();
     const sprawdz = () => {
       const w = ramka.contentWindow, d = ramka.contentDocument;
-      if (w && typeof w.computeGrid === 'function' && typeof w.downloadSVG === 'function'
-          && d.querySelectorAll('#resultsTable .result-row').length > 0) return resolve(w);
+      if (w && typeof w.computeGrid === 'function' && typeof w.downloadSVG === 'function') {
+        // Nie czekamy na klatkę animacji — wymuszamy przeliczenie sami.
+        try { (w.recalcAndDrawNow || w.recalcAndDraw)(); } catch (e) {}
+        if (d.querySelectorAll('#resultsTable .result-row').length > 0) return resolve(w);
+      }
       if (Date.now() - start > 20000) return reject(new Error('aplikacja nie wstała w 20 s'));
       setTimeout(sprawdz, 120);
     };
@@ -129,7 +135,9 @@ async function uruchom() {
     d.getElementById('firstHeightMode').value = o.fh || 'leading';
     d.getElementById('showGuides').checked = !!o.guides;
     d.getElementById('showSpecimen').checked = !!o.spec;
-    w.recalcAndDraw();
+    // Natychmiastowe przeliczenie, żeby test nie zależał od tego,
+    // czy aplikacja kolejkuje rysowanie na klatkę animacji.
+    (w.recalcAndDrawNow || w.recalcAndDraw)();
   };
   const BAZA = { u: 'mm', f: 'single', w: '210.00', h: '297.00', mt: '12.00', mb: '18.00',
                  ml: '15.00', mr: '9.00', fs: '8.00', lh: '1.20', mod: '1', col: '1' };

@@ -19,9 +19,10 @@ nie z przypuszczeń — liczby są zmierzone.
 
 ## Optymalizacje
 
-- [ ] **Przerysowanie przy każdym znaku.** `recalcAndDraw` buduje tabelę przez
-      `innerHTML` i od nowa podpina nasłuchy, potem rysuje canvas. Do zebrania
-      w jedną klatkę (`requestAnimationFrame`).
+- [x] **Przerysowanie przy każdym znaku.** Wywołania zbierane w jedną klatkę
+      animacji; `recalcAndDrawNow` zostaje tam, gdzie wynik jest potrzebny
+      natychmiast. Zmierzone: trzy wywołania pod rząd dają jedno przerysowanie.
+      Nie usuwa to przebudowy tabeli przez `innerHTML` — to osobna pozycja.
 - [ ] **Podgląd tekstu.** Łamanie woła `measureText` dla każdego wiersza w każdej
       kolumnie — przy 104 wierszach i 5 kolumnach tysiące pomiarów na jedno
       przerysowanie. Szerokości znaków da się policzyć raz na krój i stopień.
