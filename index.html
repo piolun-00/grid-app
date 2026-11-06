@@ -181,20 +181,23 @@
       background-repeat: repeat-y;
       background-size: 100% var(--loader-step);
       animation:
-        loader-draw 1.1s cubic-bezier(.22, .61, .36, 1) forwards,
-        loader-spread 1.9s cubic-bezier(.33, 0, .2, 1) 1.15s forwards;
+        loader-draw 1.2s cubic-bezier(.33, .1, .25, 1) forwards,
+        loader-spread 1.9s cubic-bezier(.45, .05, .55, .95) 1s forwards,
+        loader-dim 0.45s ease-out 2.9s forwards;
     }
     @keyframes loader-draw { to { height: 100%; } }
     @keyframes loader-spread {
       from { background-size: 100% var(--loader-step); }
       to   { background-size: 100% var(--loader-step-end); }
     }
+    /* Kreski gasną, a tło nakładki zostaje — przez chwilę widać pusty ekran. */
+    @keyframes loader-dim { to { opacity: 0; } }
     .loader.is-done {
       opacity: 0;
       pointer-events: none;
     }
     @media (prefers-reduced-motion: reduce) {
-      .loader__scale { animation: none; height: 100%; background-size: 100% var(--loader-step-end); }
+      .loader__scale { animation: none; height: 100%; background-size: 100% var(--loader-step-end); opacity: 0; }
       .loader { transition: none; }
     }
 
@@ -2765,17 +2768,24 @@
 
     /* Ekran ładowania schodzi, gdy kroje są gotowe i siatka narysowana —
        inaczej mignąłby tekst w zastępczym kroju. */
-    (function hideLoader() {
+    /* Kolejność: podziałka się rysuje, rozsuwa, gaśnie — chwila pustego
+       ekranu — dopiero wtedy wjeżdża interfejs. Nakładka ma to samo tło co
+       strona, więc jej usunięcie jest niewidoczne; znikają tylko kreski.
+       Dlatego nie ukrywamy .app klasą: gdyby skrypt padł, interfejs i tak
+       jest na swoim miejscu, a nie schowany na zawsze. */
+    const LOADER_END = 3350;   // 1,2 s rysowania + rozsuwanie + 0,45 s zaniku kresek
+    const LOADER_HOLD = 400;   // pusty ekran
+
+    (function runLoader() {
       const el = document.getElementById('loader');
       if (!el) return;
-      const done = () => {
-        el.classList.add('is-done');
-        el.addEventListener('transitionend', () => el.remove(), { once: true });
-        setTimeout(() => el.remove(), 1200); // gdy przejście nie wystartuje
-      };
       const fonts = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
-      // 1,1 s rysowania + 1,9 s rozsuwania; dopiero potem schodzimy
-      Promise.all([fonts, new Promise(r => setTimeout(r, 3050))]).then(done);
+      Promise.all([fonts, new Promise(r => setTimeout(r, LOADER_END + LOADER_HOLD))]).then(() => {
+        el.remove();
+        const app = document.querySelector('.app');
+        app.classList.add('is-loaded');
+        setTimeout(() => app.classList.remove('is-loaded'), 1600);
+      });
     })();
 
     (function watchVersion() {
@@ -2921,10 +2931,8 @@
     window.addEventListener('load', () => {
       applyLanguage();
       recalcAndDraw();
-      const app = document.querySelector('.app');
-      app.classList.add('is-loaded');
-      // Remove class after animations complete to prevent replays
-      setTimeout(() => app.classList.remove('is-loaded'), 1500);
+      // Klasę is-loaded dokłada ekran ładowania, kiedy zejdzie —
+      // inaczej wejście paneli odegrałoby się pod nakładką.
     });
     window.addEventListener('resize', recalcAndDraw);
   </script>
