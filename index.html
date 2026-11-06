@@ -115,6 +115,9 @@
 
     /* ===== BASE ===== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Kontrolki formularza nie dziedziczą interlinii z body — dostawały
+       domyślne „normal" z przeglądarki i jako jedyne wypadały z rytmu. */
+    button, input, select, textarea { line-height: inherit; }
     html, body {
       overflow: hidden;
       height: 100svh;
@@ -416,13 +419,20 @@
     .group__head {
       width: 100%;
       display: flex;
-      align-items: baseline;
+      /* Nie baseline: tytuł (13 px) i podsumowanie (12 px) mają różne
+         wzniesienia, więc linia flexa rosła do 16,25 i nagłówek wypadał
+         na 40,5. Przy wspólnej interlinii 16 px wyrównanie do środka
+         wygląda tak samo, a wysokość wychodzi równe 40. */
+      align-items: center;
       gap: var(--gap-sm);
       padding: var(--pad-v-xl);
       border: 0;
       background: none;
       text-align: left;
       font: inherit;
+      /* Po font: inherit, bo skrót rozwija się także na line-height
+         i skasowałby tę wartość. 12 + 16 + 12 = 40 zamiast 41,55. */
+      line-height: 16px;
       color: inherit;
       cursor: pointer;
       min-width: 0;
@@ -484,7 +494,7 @@
       padding: var(--layout-md);
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: var(--layout-sm);
     }
     .panel-title {
       font-size: var(--font-h4);
@@ -497,7 +507,7 @@
       padding: var(--layout-md);
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: var(--layout-sm);
     }
 
     /* ===== CANVAS AREA ===== */
@@ -736,7 +746,10 @@
       color: var(--text-primary);
       font-family: inherit;
       font-size: var(--font-body);
-      padding: var(--pad-v-xl) 36px var(--pad-v-xl) var(--pad-h-sm);
+      /* Po odziedziczeniu interlinii lista urosłaby do 41,5 px — równamy ją
+         do wysokości pól tekstowych, czyli 32 px. */
+      height: var(--size-sm);
+      padding: 0 36px 0 var(--pad-h-sm);
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
