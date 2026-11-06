@@ -2096,6 +2096,10 @@
         // mobilePanel state handled by scroll position
       } catch (e) {}
       applyingState = false;
+      /* Podpisy marginesów zależą od rozkładówki, a applyLanguage() — które
+         je odświeża — biegnie przy load, czyli zanim projekt wczyta się
+         z bazy. Bez tego po przywróceniu rozkładówki zostawały „lewy/prawy". */
+      updateMarginLabels();
       updateGuidesRow();
       updateFormatPills();
       recalcAndDraw();
