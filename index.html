@@ -238,6 +238,7 @@
     }
     .unit-control-label {
       font-size: var(--font-small);
+      color: var(--text-muted);
       white-space: nowrap;
     }
     .pill-group {
@@ -510,8 +511,13 @@
       gap: var(--gap-sm);
     }
     .btn svg {
-      width: 24px;
-      height: 24px;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+    .pill svg {
+      width: 16px;
+      height: 16px;
       flex-shrink: 0;
     }
 
@@ -523,7 +529,7 @@
     }
     .result-row {
       display: grid;
-      grid-template-columns: 3fr 1fr;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       height: var(--size-sm);
       padding: 0 2px;
@@ -535,10 +541,20 @@
       cursor: pointer;
       transition: background 0.3s ease-out;
     }
+    /* Etykieta przygaszona, wartość ciemna — tak samo jak w polach formularza.
+       Kolumna wartości dopasowuje się do treści, więc „pomiar znaków" nie łamie się na dwie linie. */
+    .result-row > span:first-child {
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .result-value {
       font-family: 'Fragment Mono', monospace;
       font-variant-numeric: tabular-nums;
       text-align: right;
+      white-space: nowrap;
+      padding-left: var(--gap-md);
     }
 
     /* ===== COPY TOOLTIP ===== */
@@ -1342,7 +1358,29 @@
       });
     }
 
+    /* Długości trzymane są w jednostce aktywnej w chwili wpisania. Bez przeliczenia
+       strona 148 mm po przejściu na piksele zostawała „148" i nagle znaczyła co innego.
+       Stopień pisma jest w punktach, a interlinia i liczby modułów są bezwymiarowe —
+       tych nie ruszamy. */
+    const LENGTH_INPUTS = ['pageWidth', 'pageHeight', 'marginTop', 'marginBottom',
+                           'marginLeft', 'marginRight', 'gutterWidth'];
+
+    function convertLengthInputs(from, to) {
+      if (from === to) return;
+      const factor = (from === 'mm') ? MM_TO_PX : 1 / MM_TO_PX;
+      for (const id of LENGTH_INPUTS) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        const raw = normalizeNumberString(el.value);
+        if (raw === '') continue; // puste światło to „auto" — zostaje puste
+        const v = parseFloat(raw);
+        if (!Number.isFinite(v)) continue;
+        el.value = (v * factor).toFixed(2);
+      }
+    }
+
     initPillGroup('unitToggle', val => {
+      convertLengthInputs(currentUnit, val);
       currentUnit = val;
       const unitPill = document.querySelector('#outputUnitToggle [data-value="unit"]');
       if (unitPill) unitPill.textContent = val;
