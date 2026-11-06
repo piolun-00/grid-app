@@ -5,11 +5,11 @@ nie z przypuszczeń — liczby są zmierzone.
 
 ## Ryzyka (najpierw)
 
-- [ ] **Brak testów.** Matryca 128 przypadków (mm/px × pojedyncza/rozkładówka ×
-      2 stopnie × 2 interlinie × 4 warianty modułów × kolumny auto/stałe) była
-      puszczana ręcznie z konsoli i porównywana skrótem SHA eksportu SVG.
-      Złapała dwa realne błędy zmiennoprzecinkowe. Powinna być plikiem w repo
-      (`tests/matrix.html` uruchamiane w przeglądarce — bez narzędzi budowania).
+- [x] **Testy.** `tests/matrix.html` — otwierane w przeglądarce, bez narzędzi
+      budowania. 77 sprawdzeń: niezmienniki geometrii we wszystkich trzech
+      trybach pierwszej wysokości oraz wzorcowy skrót 128 eksportów SVG.
+      Sprawdzone, że potrafią paść: wstrzyknięcie błędu 0,05% w interlinii
+      zapala 25 testów na czerwono.
 - [ ] **Sześć `catch {}` połyka błędy.** Najgroźniejszy: zapis do IndexedDB.
       W oknie prywatnym lub przy braku miejsca zapis nie przechodzi, a status
       dalej pokazuje „zapisano".
