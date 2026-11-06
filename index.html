@@ -542,10 +542,6 @@
       align-items: flex-start;
       justify-content: flex-start;
     }
-    .preview-title {
-      font-size: var(--font-h4);
-      font-weight: normal;
-    }
     .canvas-wrap {
       flex: 1;
       display: flex;
@@ -1532,7 +1528,7 @@
     <!-- ===== PODGLAD ===== -->
     <div class="panel-preview" id="panelPreview">
       <div class="preview-header">
-        <div class="preview-title" data-i18n="preview_title">Podgląd:</div>
+        <div class="panel-title preview-title" data-i18n="preview_title">Podgląd:</div>
         <div class="preview-zoom">
           <button type="button" class="ctrl-btn" id="zoomOut" aria-label="−">
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.45801 4.49609H8.54201V5.50409H1.45801V4.49609Z" fill="currentColor"/></svg>
@@ -3499,7 +3495,7 @@
        porównanie z wersją wbudowaną w tę kopię, pasek z prośbą
        o odświeżenie. Bez odpytywania, gdy pasek już wisi.
     ======================================== */
-    const APP_VERSION = '2026.11.06.22';
+    const APP_VERSION = '2026.11.06.23';
 
     document.getElementById('topbarVersion').textContent = 'v' + APP_VERSION;
 
