@@ -37,6 +37,9 @@
       --layout-sm: 16px;
       --layout-md: 20px;
       --layout-lg: 32px;
+      --label-col: 72px;
+      --loader-step: 16px;
+      --loader-width: 666px; /* dwa panele po 332 px + linie rozdzielające */
       --pad-h-xs: 8px;
       --pad-h-sm: 12px;
       --pad-h-md: 16px;
@@ -148,6 +151,42 @@
        inaczej doklejałby się do pełnej wysokości i strona dostawałaby zbędne przewijanie. */
     @media (max-width: 1024px) {
       body.has-banner .app { height: auto; min-height: calc(100svh - var(--banner-h, 44px)); }
+    }
+
+    /* ===== EKRAN ŁADOWANIA =====
+       Podziałka rysowana w dół, w pasie od lewej krawędzi do szerokości
+       paneli — czyta się jak powstająca siatka bazowa. Kreski to gradient,
+       więc nie ma setki węzłów w drzewie, a „rysowanie" to animacja wysokości.
+    */
+    .loader {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background: var(--bg-app);
+      opacity: 1;
+      transition: opacity 0.45s ease-out;
+    }
+    .loader__scale {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: var(--loader-width);
+      height: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        var(--border-lighter) 0 1px,
+        transparent 1px var(--loader-step)
+      );
+      animation: loader-draw 1s cubic-bezier(.22, .61, .36, 1) forwards;
+    }
+    @keyframes loader-draw { to { height: 100%; } }
+    .loader.is-done {
+      opacity: 0;
+      pointer-events: none;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .loader__scale { animation: none; height: 100%; }
+      .loader { transition: none; }
     }
 
     /* ===== PASEK GÓRNY ===== */
@@ -301,8 +340,33 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: var(--layout-md);
       margin-bottom: var(--layout-sm);
       flex-shrink: 0;
+    }
+    .preview-zoom {
+      display: flex;
+      align-items: center;
+      gap: var(--gap-sm);
+    }
+    .preview-zoom input[type=range] {
+      width: 120px;
+      accent-color: var(--text-primary);
+      cursor: pointer;
+    }
+    .preview-zoom__value {
+      font-family: 'Fragment Mono', monospace;
+      font-variant-numeric: tabular-nums;
+      font-size: var(--font-small);
+      color: var(--text-muted);
+      min-width: 42px;
+      text-align: right;
+    }
+    /* Przy powiększeniu kartka nie mieści się w panelu — wtedy i tylko wtedy przewijamy. */
+    .canvas-wrap.is-zoomed {
+      overflow: auto;
+      align-items: flex-start;
+      justify-content: flex-start;
     }
     .preview-title {
       font-size: var(--font-h4);
@@ -336,10 +400,13 @@
     .panel-results > .unit-control {
       padding-top: calc(var(--pad-v-xl) + 1px - (var(--size-xs) - var(--font-small) * 1.35) / 2);
     }
+    /* Etykiety mają różną szerokość („Jednostka:" 63 px, „Str. Widz:" 53 px),
+       więc bez wspólnej kolumny rzędy pilli startowały 10 px od siebie. */
     .unit-control-label {
       font-size: var(--font-small);
       color: var(--text-muted);
       white-space: nowrap;
+      min-width: var(--label-col);
     }
     .pill-group {
       display: flex;
@@ -848,6 +915,7 @@
       .app-body {
         flex-direction: column;
       }
+      .loader__scale { width: 100%; }
       .app {
         height: auto;
         min-height: 100svh;
@@ -960,6 +1028,7 @@
   </style>
 </head>
 <body>
+  <div class="loader" id="loader" aria-hidden="true"><div class="loader__scale"></div></div>
   <div class="banner" id="updateBanner" hidden>
     <span data-i18n="update_text">Jest nowa wersja grid.app. Odśwież stronę, żeby ją wczytać.</span>
     <button type="button" class="btn banner-btn" id="updateReload" data-i18n="update_btn">Odśwież</button>
@@ -1236,6 +1305,17 @@
     <div class="panel-preview" id="panelPreview">
       <div class="preview-header">
         <div class="preview-title" data-i18n="preview_title">Podgląd:</div>
+        <div class="preview-zoom">
+          <button type="button" class="ctrl-btn" id="zoomOut" aria-label="−">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.45801 4.49609H8.54201V5.50409H1.45801V4.49609Z" fill="currentColor"/></svg>
+          </button>
+          <input type="range" id="zoomRange" min="50" max="400" step="10" value="100" aria-label="zoom">
+          <button type="button" class="ctrl-btn" id="zoomIn" aria-label="+">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5.49006 4.51006H8.38806V5.49006H5.49006V8.38806H4.51006V5.49006H1.61206V4.51006H4.51006V1.61206H5.49006V4.51006Z" fill="currentColor"/></svg>
+          </button>
+          <span class="preview-zoom__value" id="zoomValue">100%</span>
+          <button type="button" class="link" id="zoomFit" data-i18n="zoom_fit">Dopasuj</button>
+        </div>
       </div>
       <div class="canvas-wrap">
         <canvas id="gridCanvas"></canvas>
@@ -1284,6 +1364,7 @@
         sec_document: 'Dokument',
         format_label: 'Format strony:',
         btn_share: 'Kopiuj link',
+        zoom_fit: 'Dopasuj',
         btn_shared: 'Skopiowano',
         sec_type: 'Typografia',
         sec_grid: 'Siatka',
@@ -1362,6 +1443,7 @@
         sec_document: 'Document',
         format_label: 'Page format:',
         btn_share: 'Copy link',
+        zoom_fit: 'Fit',
         btn_shared: 'Copied',
         sec_type: 'Typography',
         sec_grid: 'Grid',
@@ -1694,6 +1776,7 @@
         showGuides: document.getElementById('showGuides').checked,
         showSpecimen: document.getElementById('showSpecimen').checked,
         groupOpen: groupOpen,
+        previewZoom: previewZoom,
         mobilePanel: 'params'
       };
       localStorage.setItem('gridApp_state', JSON.stringify(state));
@@ -1732,6 +1815,12 @@
         if (typeof s.showGuides === 'boolean') document.getElementById('showGuides').checked = s.showGuides;
         if (typeof s.showSpecimen === 'boolean') document.getElementById('showSpecimen').checked = s.showSpecimen;
         if (s.groupOpen && typeof s.groupOpen === 'object') Object.assign(groupOpen, s.groupOpen);
+        if (typeof s.previewZoom === 'number' && s.previewZoom >= 0.5 && s.previewZoom <= 4) {
+          previewZoom = s.previewZoom;
+          const shown = Math.round(previewZoom * 100);
+          document.getElementById('zoomRange').value = String(shown);
+          document.getElementById('zoomValue').textContent = shown + '%';
+        }
         if (s.columns) document.getElementById('columns').value = s.columns;
         if (s.hModules) {
           document.getElementById('hModules').value = s.hModules;
@@ -1748,6 +1837,26 @@
         // mobilePanel state handled by scroll position
       } catch(e) {}
     }
+
+    /* ========================================
+       ZOOM PODGLĄDU
+       1 = dopasowanie do panelu, czyli to, co było dotąd.
+    ======================================== */
+    let previewZoom = 1;
+
+    function setZoom(pct) {
+      previewZoom = Math.min(4, Math.max(0.5, pct / 100));
+      const shown = Math.round(previewZoom * 100);
+      document.getElementById('zoomRange').value = String(shown);
+      document.getElementById('zoomValue').textContent = shown + '%';
+      recalcAndDraw();
+      saveState();
+    }
+
+    document.getElementById('zoomRange').addEventListener('input', e => setZoom(Number(e.target.value)));
+    document.getElementById('zoomIn').addEventListener('click', () => setZoom(Math.round(previewZoom * 100) + 25));
+    document.getElementById('zoomOut').addEventListener('click', () => setZoom(Math.round(previewZoom * 100) - 25));
+    document.getElementById('zoomFit').addEventListener('click', () => setZoom(100));
 
     /* ========================================
        PRESETY FORMATU
@@ -2497,7 +2606,7 @@
       const totalWidth = facingPages ? pageWidth * 2 : pageWidth;
       const fitScale = Math.min(contentWidth / totalWidth, contentHeight / pageHeight);
       const minScale = Math.max(120 / totalWidth, 200 / pageHeight);
-      const scale = Math.max(fitScale, minScale);
+      const scale = Math.max(fitScale, minScale) * previewZoom;
 
       canvas.width = Math.max(1, Math.round(totalWidth * scale));
       canvas.height = Math.max(1, Math.round(pageHeight * scale));
@@ -2523,6 +2632,8 @@
       }
 
       ctx.restore();
+      container.classList.toggle('is-zoomed',
+        canvas.width > contentWidth + 1 || canvas.height > contentHeight + 1);
       updateCtrlBtnStates();
       updateFormatPills();
       updateGroupSummaries();
@@ -2630,6 +2741,20 @@
     const APP_VERSION = '2026.11.06.5';
 
     document.getElementById('topbarVersion').textContent = 'v' + APP_VERSION;
+
+    /* Ekran ładowania schodzi, gdy kroje są gotowe i siatka narysowana —
+       inaczej mignąłby tekst w zastępczym kroju. */
+    (function hideLoader() {
+      const el = document.getElementById('loader');
+      if (!el) return;
+      const done = () => {
+        el.classList.add('is-done');
+        el.addEventListener('transitionend', () => el.remove(), { once: true });
+        setTimeout(() => el.remove(), 1200); // gdy przejście nie wystartuje
+      };
+      const fonts = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+      Promise.all([fonts, new Promise(r => setTimeout(r, 900))]).then(done);
+    })();
 
     (function watchVersion() {
       const banner = document.getElementById('updateBanner');
