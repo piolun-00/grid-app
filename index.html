@@ -176,20 +176,16 @@
       /* Pojedynczy gradient powtarzany przez background-repeat, a nie
          repeating-linear-gradient: dzięki temu rozstaw kresek siedzi
          w background-size, który da się animować bez rejestrowania
-         zmiennej przez @property.
-         Kreska jest przy DOLNEJ krawędzi kafla, a kafle układają się od dołu
-         — dzięki temu ostatnia kreska pada dokładnie na dolną krawędź pasa,
-         czyli na linię pisma napisu „loading". */
-      background-image: linear-gradient(to bottom, transparent calc(100% - 1px), var(--border-lighter) 0);
+         zmiennej przez @property. */
+      background-image: linear-gradient(to bottom, var(--border-lighter) 0 1px, transparent 1px);
       background-repeat: repeat-y;
-      background-position: left bottom;
       background-size: 100% var(--loader-step);
       animation:
         loader-draw 1.2s cubic-bezier(.33, .1, .25, 1) forwards,
         loader-spread 1.9s cubic-bezier(.45, .05, .55, .95) 1s forwards,
         loader-dim 0.45s ease-out 2.9s forwards;
     }
-    @keyframes loader-draw { to { height: var(--loader-height, 50%); } }
+    @keyframes loader-draw { to { height: 100%; } }
     @keyframes loader-spread {
       from { background-size: 100% var(--loader-step); }
       to   { background-size: 100% var(--loader-step-end); }
@@ -203,7 +199,6 @@
       left: calc(var(--loader-width) + var(--layout-md));
       top: 50%;
       transform: translateY(-50%);
-      white-space: nowrap;
       font-family: 'Fragment Mono', monospace;
       font-size: var(--font-small);
       color: var(--text-muted);
@@ -219,13 +214,25 @@
       0%, 100% { opacity: .35; }
       50% { opacity: 1; }
     }
+    /* Trzy kropki dochodzą po kolei. Napis jest w kroju o stałej szerokości
+       znaku, więc krok 1ch trafia dokładnie w kolejną kropkę. */
+    .loader__label::after {
+      content: '...';
+      display: inline-block;
+      width: 0;
+      overflow: hidden;
+      vertical-align: bottom;
+      animation: loader-dots 1.4s steps(4, jump-none) infinite;
+    }
+    @keyframes loader-dots { to { width: 3ch; } }
     .loader.is-done {
       opacity: 0;
       pointer-events: none;
     }
     @media (prefers-reduced-motion: reduce) {
-      .loader__scale { animation: none; height: var(--loader-height, 50%); background-size: 100% var(--loader-step-end); opacity: 0; }
+      .loader__scale { animation: none; height: 100%; background-size: 100% var(--loader-step-end); opacity: 0; }
       .loader__label { animation: none; opacity: 0; }
+      .loader__label::after { animation: none; width: 3ch; }
       .loader { transition: none; }
     }
 
@@ -3446,27 +3453,6 @@
 
     /* Ekran ładowania schodzi, gdy kroje są gotowe i siatka narysowana —
        inaczej mignąłby tekst w zastępczym kroju. */
-    /* Pas podziałki ma kończyć się dokładnie na linii pisma napisu.
-       W CSS nie da się jej wyliczyć — zerowy element inline-block ma dolną
-       krawędź dokładnie na linii pisma, więc mierzymy nim. Pomiar powtarzamy
-       po wczytaniu krojów, bo przed nimi napis ma metryki kroju zastępczego. */
-    (function alignLoaderToBaseline() {
-      const label = document.querySelector('.loader__label');
-      if (!label) return;
-      const strut = document.createElement('i');
-      strut.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
-      label.appendChild(strut);
-
-      const measure = () => {
-        if (!strut.isConnected) return;
-        const y = strut.getBoundingClientRect().bottom;
-        if (y > 0) document.documentElement.style.setProperty('--loader-height', y + 'px');
-      };
-      measure();
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
-      addEventListener('resize', measure);
-    })();
-
     /* Kolejność: podziałka się rysuje, rozsuwa, gaśnie — chwila pustego
        ekranu — dopiero wtedy wjeżdża interfejs. Nakładka ma to samo tło co
        strona, więc jej usunięcie jest niewidoczne; znikają tylko kreski.
